@@ -1,0 +1,201 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'wouter';
+import { Plus, Package, Heart, Clock, CheckCircle2, User, Settings, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { dummyListings } from '@/lib/dummy-data';
+
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState('listed');
+  const userListings = dummyListings.slice(0, 3);
+  const watchlist = dummyListings.filter(l => l.isWatchlisted);
+
+  const tabs = [
+    { id: 'listed', label: 'Listed Items', icon: <Package className="w-4 h-4" /> },
+    { id: 'process', label: 'In Process', icon: <Clock className="w-4 h-4" /> },
+    { id: 'sold', label: 'Sold', icon: <CheckCircle2 className="w-4 h-4" /> },
+    { id: 'watchlist', label: 'Watchlist', icon: <Heart className="w-4 h-4" /> },
+  ];
+
+  return (
+    <div className="min-h-screen bg-cream-50 flex flex-col md:flex-row">
+      
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-64 bg-purple-900 text-cream-50 flex-col py-8 px-6 border-r border-purple-800 shrink-0">
+        <div className="flex items-center gap-4 mb-12">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold to-yellow-300 flex items-center justify-center text-purple-900 font-bold text-xl shadow-lg">
+            D
+          </div>
+          <div>
+            <div className="font-bold text-lg">David Levi</div>
+            <div className="text-purple-300 text-sm">Seller Level: Pro</div>
+          </div>
+        </div>
+
+        <nav className="flex-1 space-y-2">
+          <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-4">Activity</div>
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === tab.id ? 'bg-purple-700/50 text-white font-medium' : 'text-purple-300 hover:bg-purple-800/50 hover:text-white'}`}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+
+          <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-8 mb-4">Account</div>
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-purple-800/50 hover:text-white transition-all">
+            <User className="w-4 h-4" /> Profile
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-purple-800/50 hover:text-white transition-all">
+            <Settings className="w-4 h-4" /> Settings
+          </button>
+        </nav>
+
+        <button className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-red-900/50 hover:text-red-400 transition-all">
+          <LogOut className="w-4 h-4" /> Log out
+        </button>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 md:p-10 lg:p-12 overflow-x-hidden">
+        <div className="max-w-5xl mx-auto">
+          
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="font-serif text-4xl font-bold text-purple-900">Dashboard</h1>
+            <Link href="/post">
+              <Button className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 shadow-md">
+                <Plus className="w-5 h-5 mr-2" /> List New Item
+              </Button>
+            </Link>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {[
+              { label: 'Active Listings', value: '3', color: 'bg-white' },
+              { label: 'In Process', value: '1', color: 'bg-purple-50' },
+              { label: 'Total Sold', value: '12', color: 'bg-cream-100' },
+              { label: 'Watchlist', value: watchlist.length.toString(), color: 'bg-white' },
+            ].map((stat, i) => (
+              <motion.div 
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className={`p-6 rounded-3xl border border-purple-100 shadow-sm ${stat.color}`}
+              >
+                <div className="text-3xl font-serif font-bold text-purple-900 mb-1">{stat.value}</div>
+                <div className="text-sm font-medium text-purple-600/80">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Mobile Tabs */}
+          <div className="flex md:hidden overflow-x-auto pb-4 mb-6 gap-2 snap-x scrollbar-hide">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`snap-start shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-purple-900 text-cream-50' : 'bg-white text-purple-700 border border-purple-200'}`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <h2 className="font-serif text-2xl font-bold text-purple-900 mb-6">{tabs.find(t=>t.id===activeTab)?.label}</h2>
+                
+                {activeTab === 'listed' && (
+                  userListings.map(listing => (
+                    <div key={listing.id} className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group">
+                      <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                        <img src={listing.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center">
+                        <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
+                        <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                        <div className="flex gap-2">
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">Active</span>
+                          <span className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-md font-medium flex items-center"><Eye className="w-3 h-3 mr-1"/> 42 views</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4 hidden sm:flex">
+                        <Button variant="outline" size="sm" className="text-xs border-purple-200">Edit</Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                {activeTab === 'process' && (
+                  <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                    <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock className="w-10 h-10 text-purple-400" />
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">No items in process</h3>
+                    <p className="text-purple-600/70">When a buyer requests an item, it will appear here.</p>
+                  </div>
+                )}
+
+                {activeTab === 'sold' && (
+                  <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                    <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 className="w-10 h-10 text-purple-400" />
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">No items sold yet</h3>
+                    <p className="text-purple-600/70">List your first item to get started.</p>
+                  </div>
+                )}
+
+                {activeTab === 'watchlist' && (
+                  watchlist.map(listing => (
+                    <div key={listing.id} className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group">
+                      <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                        <img src={listing.images[0]} className="w-full h-full object-cover" alt="" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center">
+                        <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
+                        <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                        <div className="text-xs text-purple-400 flex items-center"><Heart className="w-3 h-3 mr-1 fill-purple-400"/> Saved 2 days ago</div>
+                      </div>
+                      <div className="flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
+                        <Link href={`/item/${listing.id}`}>
+                          <Button size="sm" className="bg-purple-100 text-purple-900 hover:bg-purple-200">View</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+        </div>
+      </main>
+
+      {/* Mobile Floating Action Button */}
+      <div className="md:hidden fixed bottom-6 right-6 z-40">
+        <Link href="/post">
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            className="w-16 h-16 bg-purple-600 rounded-full text-white shadow-[0_8px_30px_rgb(91,45,142,0.4)] flex items-center justify-center"
+          >
+            <Plus className="w-8 h-8" />
+          </motion.button>
+        </Link>
+      </div>
+    </div>
+  );
+}

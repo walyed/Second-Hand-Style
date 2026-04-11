@@ -247,19 +247,34 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="py-20 bg-purple-900 text-cream-50">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          <div>
-            <div className="font-serif text-6xl font-bold text-gold mb-2">2.4k+</div>
-            <div className="text-purple-200 text-lg uppercase tracking-widest font-medium">Items Listed</div>
-          </div>
-          <div>
-            <div className="font-serif text-6xl font-bold text-purple-300 mb-2">1.8k+</div>
-            <div className="text-purple-200 text-lg uppercase tracking-widest font-medium">Happy Buyers</div>
-          </div>
-          <div>
-            <div className="font-serif text-6xl font-bold text-cream-50 mb-2">98%</div>
-            <div className="text-purple-200 text-lg uppercase tracking-widest font-medium">Satisfaction Rate</div>
+      <section className="relative py-24 bg-[#FDFBF7] overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #1E0A3C 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#DCC4F8] to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#DCC4F8] to-transparent" />
+        
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            {[
+              { value: "2,400+", label: "Items Listed", color: "text-[#C9A84C]", borderColor: "border-[#C9A84C]/20", bgGlow: "bg-[#C9A84C]/5" },
+              { value: "1,800+", label: "Happy Buyers", color: "text-[#7B3FB5]", borderColor: "border-[#7B3FB5]/20", bgGlow: "bg-[#7B3FB5]/5" },
+              { value: "98%", label: "Satisfaction Rate", color: "text-[#1E0A3C]", borderColor: "border-[#1E0A3C]/10", bgGlow: "bg-[#1E0A3C]/5" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.15 }}
+                className={`relative text-center p-10 rounded-3xl border ${stat.borderColor} ${stat.bgGlow} backdrop-blur-sm`}
+              >
+                <div className={`font-serif text-5xl md:text-6xl font-bold ${stat.color} mb-3`}>
+                  {stat.value}
+                </div>
+                <div className="text-[#5B2D8E] text-sm uppercase tracking-[0.2em] font-medium">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

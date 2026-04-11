@@ -130,32 +130,116 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section className="py-24 bg-cream-100 border-y border-purple-100">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4">The Marketplace Way</h2>
-            <p className="text-purple-600/80 text-lg">A simpler, more intentional way to buy and sell.</p>
+      <section className="relative py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1E0A3C] via-[#2D1558] to-[#3D1F73]" />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#7B3FB5]/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-[#C9A84C]/10 rounded-full blur-[100px]" />
+
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#C9A84C]/20 text-[#C9A84C] text-sm font-medium tracking-wider uppercase mb-6 border border-[#C9A84C]/30">
+                How It Works
+              </span>
+              <h2 className="font-serif text-4xl md:text-6xl font-bold text-white mb-5">
+                The Marketplace <span className="text-[#C9A84C]">Way</span>
+              </h2>
+              <p className="text-[#DCC4F8] text-lg md:text-xl max-w-2xl mx-auto">
+                Three simple steps to a simpler, more intentional way to buy and sell.
+              </p>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="hidden md:block absolute top-[55%] left-[calc(50%-340px)] w-[680px] h-px">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2, delay: 0.5, ease: "easeInOut" }}
+              className="w-full h-px bg-gradient-to-r from-transparent via-[#9B5FD4]/40 to-transparent origin-left"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
             {[
-              { title: "Browse & Discover", desc: "Find unique, high-quality items in your area. Everything is curated for quality.", icon: "🔍" },
-              { title: "Connect Securely", desc: "Our admin team facilitates the connection between buyer and seller, ensuring a safe transaction.", icon: "🤝" },
-              { title: "Collect & Enjoy", desc: "Pick up your new piece and give it a second life in your home. Sustainable and smart.", icon: "✨" }
+              {
+                step: "01",
+                title: "Browse & Discover",
+                desc: "Explore curated, high-quality second-hand items near you. Filter by category, condition, and location to find exactly what you need.",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" strokeLinecap="round" />
+                  </svg>
+                ),
+                gradient: "from-[#7B3FB5] to-[#9B5FD4]",
+                glowColor: "shadow-[#7B3FB5]/30",
+              },
+              {
+                step: "02",
+                title: "Connect Securely",
+                desc: "Our admin team personally facilitates every connection between buyer and seller — ensuring trust, safety, and a seamless experience.",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="m9 12 2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ),
+                gradient: "from-[#C9A84C] to-[#d4b86a]",
+                glowColor: "shadow-[#C9A84C]/30",
+              },
+              {
+                step: "03",
+                title: "Collect & Enjoy",
+                desc: "Pick up your treasure and give it a second life. Sustainable shopping that feels great — for you and the planet.",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-8 h-8">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                ),
+                gradient: "from-[#BC8FEE] to-[#DCC4F8]",
+                glowColor: "shadow-[#BC8FEE]/30",
+              }
             ].map((step, i) => (
               <motion.div
                 key={step.title}
-                initial={{ opacity: 0, rotateY: 90 }}
-                whileInView={{ opacity: 1, rotateY: 0 }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, type: "spring", bounce: 0.4, delay: i * 0.2 }}
-                className="bg-white rounded-3xl p-8 shadow-sm border border-purple-100 text-center flex flex-col items-center"
+                transition={{ duration: 0.7, delay: i * 0.2, ease: "easeOut" }}
+                className="group relative"
               >
-                <div className="w-20 h-20 rounded-full bg-cream-50 flex items-center justify-center text-4xl mb-6 shadow-inner">
-                  {step.icon}
+                <div className="relative rounded-3xl p-px bg-gradient-to-b from-white/20 to-white/5 overflow-hidden">
+                  <div className="relative rounded-[calc(1.5rem-1px)] bg-white/[0.06] backdrop-blur-xl p-8 md:p-10 h-full border border-white/10">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/[0.04] to-transparent rounded-bl-full" />
+                    
+                    <div className="flex items-start gap-5 mb-6">
+                      <div className={`relative flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white shadow-lg ${step.glowColor} group-hover:scale-110 transition-transform duration-500`}>
+                        {step.icon}
+                        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-40 blur-xl transition-opacity duration-500`} />
+                      </div>
+                      <span className="font-serif text-5xl font-bold text-white/[0.08] leading-none select-none">
+                        {step.step}
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif text-2xl md:text-[1.7rem] font-bold text-white mb-3 group-hover:text-[#C9A84C] transition-colors duration-300">
+                      {step.title}
+                    </h3>
+                    <p className="text-[#BC8FEE]/80 leading-relaxed text-[0.95rem]">
+                      {step.desc}
+                    </p>
+
+                    <div className={`mt-6 h-0.5 w-12 rounded-full bg-gradient-to-r ${step.gradient} group-hover:w-20 transition-all duration-500`} />
+                  </div>
                 </div>
-                <h3 className="font-serif text-2xl font-bold mb-3">{step.title}</h3>
-                <p className="text-purple-700/70">{step.desc}</p>
               </motion.div>
             ))}
           </div>

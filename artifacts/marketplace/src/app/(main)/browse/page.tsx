@@ -1,88 +1,160 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, SlidersHorizontal, ChevronDown, Check } from 'lucide-react';
-import { dummyListings, Category, Condition, City } from '@/lib/dummy-data';
-import { ListingCard } from '@/components/ListingCard';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader } from '@/components/ui/sheet';
+"use client";
+
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Filter, SlidersHorizontal } from "lucide-react";
+import { dummyListings, Category, Condition, City } from "@/lib/dummy-data";
+import { ListingCard } from "@/components/ListingCard";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+  SheetHeader,
+} from "@/components/ui/sheet";
 
 export default function Browse() {
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [selectedCities, setSelectedCities] = useState<City[]>([]);
-  const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc'>('newest');
+  const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">(
+    "newest"
+  );
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories: Category[] = ["Furniture", "Electronics", "Kitchen", "Clothing", "Other"];
-  const conditions: Condition[] = ["New", "Used", "Refurbished", "Special Deal"];
+  const categories: Category[] = [
+    "Furniture",
+    "Electronics",
+    "Kitchen",
+    "Clothing",
+    "Other",
+  ];
+  const conditions: Condition[] = [
+    "New",
+    "Used",
+    "Refurbished",
+    "Special Deal",
+  ];
   const cities: City[] = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
 
-  const handleToggle = (list: any[], setList: Function, item: any) => {
+  const handleToggle = <T,>(list: T[], setList: (v: T[]) => void, item: T) => {
     if (list.includes(item)) {
-      setList(list.filter(i => i !== item));
+      setList(list.filter((i) => i !== item));
     } else {
       setList([...list, item]);
     }
   };
 
-  const filteredListings = dummyListings.filter(listing => {
-    if (selectedCategories.length > 0 && !selectedCategories.includes(listing.category)) return false;
-    if (selectedConditions.length > 0 && !selectedConditions.includes(listing.condition)) return false;
-    if (selectedCities.length > 0 && !selectedCities.includes(listing.city)) return false;
-    return true;
-  }).sort((a, b) => {
-    if (sortBy === 'price-asc') return a.sellPrice - b.sellPrice;
-    if (sortBy === 'price-desc') return b.sellPrice - a.sellPrice;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // newest
-  });
+  const filteredListings = dummyListings
+    .filter((listing) => {
+      if (
+        selectedCategories.length > 0 &&
+        !selectedCategories.includes(listing.category)
+      )
+        return false;
+      if (
+        selectedConditions.length > 0 &&
+        !selectedConditions.includes(listing.condition)
+      )
+        return false;
+      if (
+        selectedCities.length > 0 &&
+        !selectedCities.includes(listing.city)
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "price-asc") return a.sellPrice - b.sellPrice;
+      if (sortBy === "price-desc") return b.sellPrice - a.sellPrice;
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
 
   const FilterContent = () => (
     <div className="space-y-8">
       <div>
-        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">Category</h3>
+        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
+          Category
+        </h3>
         <div className="space-y-3">
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <div key={cat} className="flex items-center space-x-2">
-              <Checkbox 
-                id={`cat-${cat}`} 
+              <Checkbox
+                id={`cat-${cat}`}
                 checked={selectedCategories.includes(cat)}
-                onCheckedChange={() => handleToggle(selectedCategories, setSelectedCategories, cat)}
+                onCheckedChange={() =>
+                  handleToggle(
+                    selectedCategories,
+                    setSelectedCategories,
+                    cat
+                  )
+                }
               />
-              <Label htmlFor={`cat-${cat}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{cat}</Label>
+              <Label
+                htmlFor={`cat-${cat}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {cat}
+              </Label>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">Condition</h3>
+        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
+          Condition
+        </h3>
         <div className="space-y-3">
-          {conditions.map(cond => (
+          {conditions.map((cond) => (
             <div key={cond} className="flex items-center space-x-2">
-              <Checkbox 
-                id={`cond-${cond}`} 
+              <Checkbox
+                id={`cond-${cond}`}
                 checked={selectedConditions.includes(cond)}
-                onCheckedChange={() => handleToggle(selectedConditions, setSelectedConditions, cond)}
+                onCheckedChange={() =>
+                  handleToggle(
+                    selectedConditions,
+                    setSelectedConditions,
+                    cond
+                  )
+                }
               />
-              <Label htmlFor={`cond-${cond}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{cond}</Label>
+              <Label
+                htmlFor={`cond-${cond}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {cond}
+              </Label>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">Location</h3>
+        <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
+          Location
+        </h3>
         <div className="space-y-3">
-          {cities.map(city => (
+          {cities.map((city) => (
             <div key={city} className="flex items-center space-x-2">
-              <Checkbox 
-                id={`city-${city}`} 
+              <Checkbox
+                id={`city-${city}`}
                 checked={selectedCities.includes(city)}
-                onCheckedChange={() => handleToggle(selectedCities, setSelectedCities, city)}
+                onCheckedChange={() =>
+                  handleToggle(selectedCities, setSelectedCities, city)
+                }
               />
-              <Label htmlFor={`city-${city}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">{city}</Label>
+              <Label
+                htmlFor={`city-${city}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {city}
+              </Label>
             </div>
           ))}
         </div>
@@ -94,31 +166,41 @@ export default function Browse() {
     <div className="min-h-screen bg-cream-50 py-8 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <h1 className="font-serif text-4xl font-bold text-purple-900">Explore Collection</h1>
-          
+          <h1 className="font-serif text-4xl font-bold text-purple-900">
+            Explore Collection
+          </h1>
+
           <div className="flex items-center gap-4">
             <div className="text-sm text-purple-600 font-medium">
               Showing {filteredListings.length} results
             </div>
-            
+
             {/* Mobile Filter Trigger */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="md:hidden border-purple-200 text-purple-900">
+                <Button
+                  variant="outline"
+                  className="md:hidden border-purple-200 text-purple-900"
+                >
                   <Filter className="w-4 h-4 mr-2" /> Filters
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl bg-cream-50 overflow-y-auto">
+              <SheetContent
+                side="bottom"
+                className="h-[80vh] rounded-t-3xl bg-cream-50 overflow-y-auto"
+              >
                 <SheetHeader>
-                  <SheetTitle className="font-serif text-2xl mb-4">Filters</SheetTitle>
+                  <SheetTitle className="font-serif text-2xl mb-4">
+                    Filters
+                  </SheetTitle>
                 </SheetHeader>
                 <FilterContent />
               </SheetContent>
             </Sheet>
 
-            <select 
+            <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="bg-white border border-purple-200 text-purple-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 outline-none shadow-sm"
             >
               <option value="newest">Newest Arrivals</option>
@@ -145,12 +227,20 @@ export default function Browse() {
             {filteredListings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center glass rounded-3xl">
                 <div className="text-4xl mb-4">🔍</div>
-                <h3 className="font-serif text-2xl font-bold mb-2">No items found</h3>
-                <p className="text-purple-600/80">Try adjusting your filters to see more results.</p>
-                <Button 
-                  variant="outline" 
+                <h3 className="font-serif text-2xl font-bold mb-2">
+                  No items found
+                </h3>
+                <p className="text-purple-600/80">
+                  Try adjusting your filters to see more results.
+                </p>
+                <Button
+                  variant="outline"
                   className="mt-6 border-purple-200"
-                  onClick={() => { setSelectedCategories([]); setSelectedConditions([]); setSelectedCities([]); }}
+                  onClick={() => {
+                    setSelectedCategories([]);
+                    setSelectedConditions([]);
+                    setSelectedCities([]);
+                  }}
                 >
                   Clear all filters
                 </Button>
@@ -172,11 +262,11 @@ export default function Browse() {
                     ))}
                   </AnimatePresence>
                 </div>
-                
+
                 {filteredListings.length > 0 && (
                   <div className="mt-12 text-center">
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="bg-white text-purple-900 border border-purple-200 hover:bg-purple-50 rounded-full px-8 shadow-sm"
                       onClick={() => {
                         setIsLoading(true);
@@ -189,7 +279,9 @@ export default function Browse() {
                           <div className="w-4 h-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
                           Loading...
                         </div>
-                      ) : "Load More"}
+                      ) : (
+                        "Load More"
+                      )}
                     </Button>
                   </div>
                 )}

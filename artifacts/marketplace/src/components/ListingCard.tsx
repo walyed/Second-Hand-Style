@@ -1,6 +1,8 @@
+"use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'wouter';
+import Link from 'next/link';
 import { MapPin, Heart } from 'lucide-react';
 import { Listing } from '@/lib/dummy-data';
 import { Badge } from '@/components/ui/badge';

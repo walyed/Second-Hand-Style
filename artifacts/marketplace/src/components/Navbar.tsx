@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Menu, X, Globe, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 export function Navbar() {
-  const [location] = useLocation();
+  const pathname = usePathname();
   const [lang, setLang] = React.useState('EN');
   
   const switchLang = () => {
@@ -44,7 +47,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           <nav className="flex items-center gap-6">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className={`text-sm font-medium hover:text-purple-600 transition-colors ${location === link.href ? 'text-purple-600' : 'text-purple-900'}`}>
+              <Link key={link.href} href={link.href} className={`text-sm font-medium hover:text-purple-600 transition-colors ${pathname === link.href ? 'text-purple-600' : 'text-purple-900'}`}>
                 {link.label}
               </Link>
             ))}
@@ -72,7 +75,7 @@ export function Navbar() {
             <SheetTrigger asChild>
               <button className="text-purple-900"><Menu className="w-6 h-6" /></button>
             </SheetTrigger>
-            <SheetContent side={document.documentElement.dir === 'rtl' ? 'left' : 'right'} className="bg-cream-50 border-purple-200/40">
+            <SheetContent side={typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'left' : 'right'} className="bg-cream-50 border-purple-200/40">
               <SheetTitle className="font-serif text-2xl mb-6">Menu</SheetTitle>
               <SheetDescription className="sr-only">Navigation menu</SheetDescription>
               <div className="flex flex-col gap-6 mt-8">

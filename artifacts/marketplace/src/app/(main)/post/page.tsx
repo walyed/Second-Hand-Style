@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, ArrowRight, ArrowLeft, Check, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import confetti from 'canvas-confetti';
-import { Link } from 'wouter';
+"use client";
+
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Upload,
+  X,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Plus,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import confetti from "canvas-confetti";
+import Link from "next/link";
 
 export default function PostItem() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    condition: '',
-    originalPrice: '',
-    sellPrice: '',
-    city: '',
+    title: "",
+    description: "",
+    category: "",
+    condition: "",
+    originalPrice: "",
+    sellPrice: "",
+    city: "",
     images: [] as string[],
   });
 
@@ -25,13 +36,13 @@ export default function PostItem() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleNext = () => setStep(s => Math.min(s + 1, 3));
-  const handleBack = () => setStep(s => Math.max(s - 1, 1));
+  const handleNext = () => setStep((s) => Math.min(s + 1, 3));
+  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -39,7 +50,7 @@ export default function PostItem() {
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#7B3FB5', '#9B5FD4', '#C9A84C']
+        colors: ["#7B3FB5", "#9B5FD4", "#C9A84C"],
       });
     }, 1500);
   };
@@ -47,10 +58,12 @@ export default function PostItem() {
   const handleImageDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    // Dummy image add
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      images: [...prev.images, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800']
+      images: [
+        ...prev.images,
+        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+      ],
     }));
   };
 
@@ -60,19 +73,31 @@ export default function PostItem() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', bounce: 0.5 }}
+          transition={{ type: "spring", bounce: 0.5 }}
           className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-8"
         >
           <CheckCircle2 className="w-12 h-12 text-green-600" />
         </motion.div>
-        <h1 className="font-serif text-5xl font-bold text-purple-900 mb-4">Item Listed!</h1>
-        <p className="text-xl text-purple-700/80 max-w-md mb-8">Your item is now live and waiting for a buyer. We'll notify you when someone is interested.</p>
+        <h1 className="font-serif text-5xl font-bold text-purple-900 mb-4">
+          Item Listed!
+        </h1>
+        <p className="text-xl text-purple-700/80 max-w-md mb-8">
+          Your item is now live and waiting for a buyer. We&apos;ll notify you
+          when someone is interested.
+        </p>
         <div className="flex gap-4">
           <Link href="/dashboard">
-            <Button variant="outline" className="rounded-full px-8 border-purple-200">Go to Dashboard</Button>
+            <Button
+              variant="outline"
+              className="rounded-full px-8 border-purple-200"
+            >
+              Go to Dashboard
+            </Button>
           </Link>
           <Link href="/browse">
-            <Button className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white">View Listing</Button>
+            <Button className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white">
+              View Listing
+            </Button>
           </Link>
         </div>
       </div>
@@ -82,26 +107,27 @@ export default function PostItem() {
   return (
     <div className="min-h-[90vh] bg-cream-50 py-12 px-6">
       <div className="max-w-3xl mx-auto">
-        
         {/* Header & Progress */}
         <div className="mb-12">
-          <h1 className="font-serif text-4xl font-bold text-purple-900 mb-6">List an Item</h1>
-          
+          <h1 className="font-serif text-4xl font-bold text-purple-900 mb-6">
+            List an Item
+          </h1>
+
           <div className="relative">
             <div className="absolute top-1/2 left-0 right-0 h-1 bg-purple-100 -translate-y-1/2 rounded-full" />
-            <motion.div 
+            <motion.div
               className="absolute top-1/2 left-0 h-1 bg-purple-600 -translate-y-1/2 rounded-full"
-              initial={{ width: '0%' }}
+              initial={{ width: "0%" }}
               animate={{ width: `${((step - 1) / 2) * 100}%` }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
             />
-            
+
             <div className="relative flex justify-between">
-              {[1, 2, 3].map(s => (
-                <div 
+              {[1, 2, 3].map((s) => (
+                <div
                   key={s}
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-500
-                    ${s < step ? 'bg-purple-600 text-white' : s === step ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(123,63,181,0.5)]' : 'bg-purple-100 text-purple-400'}`}
+                    ${s < step ? "bg-purple-600 text-white" : s === step ? 'bg-purple-500 text-white shadow-[0_0_15px_rgba(123,63,181,0.5)]' : "bg-purple-100 text-purple-400"}`}
                 >
                   {s < step ? <Check className="w-4 h-4" /> : s}
                 </div>
@@ -109,9 +135,9 @@ export default function PostItem() {
             </div>
           </div>
           <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 uppercase tracking-wider">
-            <span>Photos & Details</span>
-            <span>Category & Price</span>
-            <span>Review & Post</span>
+            <span>Photos &amp; Details</span>
+            <span>Category &amp; Price</span>
+            <span>Review &amp; Post</span>
           </div>
         </div>
 
@@ -119,7 +145,6 @@ export default function PostItem() {
         <div className="glass rounded-3xl p-8 shadow-xl relative overflow-hidden">
           <form onSubmit={handleSubmit}>
             <AnimatePresence mode="wait">
-              
               {/* STEP 1: Details */}
               {step === 1 && (
                 <motion.div
@@ -130,44 +155,73 @@ export default function PostItem() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">What are you selling?</h2>
-                  
+                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
+                    What are you selling?
+                  </h2>
+
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-purple-900 font-bold">Title</Label>
-                    <Input 
-                      id="title" 
+                    <Label
+                      htmlFor="title"
+                      className="text-purple-900 font-bold"
+                    >
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
                       value={formData.title}
-                      onChange={e => setFormData({...formData, title: e.target.value})}
-                      placeholder="e.g. Vintage Leather Sofa" 
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      placeholder="e.g. Vintage Leather Sofa"
                       className="rounded-xl bg-cream-50 border-purple-200 p-6 text-lg"
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-purple-900 font-bold">Photos</Label>
-                    <div 
-                      onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
                       onDragLeave={() => setIsDragging(false)}
                       onDrop={handleImageDrop}
                       className={`border-2 border-dashed rounded-2xl p-10 text-center transition-colors cursor-pointer
-                        ${isDragging ? 'border-purple-500 bg-purple-50' : 'border-purple-200 bg-cream-50 hover:bg-white'}
-                        ${formData.images.length > 0 ? 'bg-white border-solid' : ''}`}
+                        ${isDragging ? "border-purple-500 bg-purple-50" : "border-purple-200 bg-cream-50 hover:bg-white"}
+                        ${formData.images.length > 0 ? "bg-white border-solid" : ""}`}
                       onClick={() => {
                         if (formData.images.length === 0) {
-                          setFormData(prev => ({...prev, images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800']}));
+                          setFormData((prev) => ({
+                            ...prev,
+                            images: [
+                              "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+                            ],
+                          }));
                         }
                       }}
                     >
                       {formData.images.length > 0 ? (
                         <div className="flex gap-4 overflow-x-auto">
                           {formData.images.map((img, i) => (
-                            <div key={i} className="relative w-32 h-32 rounded-xl overflow-hidden shrink-0 group">
-                              <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button 
+                            <div
+                              key={i}
+                              className="relative w-32 h-32 rounded-xl overflow-hidden shrink-0 group"
+                            >
+                              <img
+                                src={img}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                              <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setFormData(prev => ({...prev, images: prev.images.filter((_, idx) => idx !== i)}));
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    images: prev.images.filter(
+                                      (_, idx) => idx !== i
+                                    ),
+                                  }));
                                 }}
                                 className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
@@ -184,20 +238,34 @@ export default function PostItem() {
                           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
                             <Upload className="w-8 h-8 text-purple-500" />
                           </div>
-                          <p className="font-bold text-purple-900 mb-1">Drag & drop photos here</p>
-                          <p className="text-sm text-purple-600/70">High quality photos make your item sell faster</p>
+                          <p className="font-bold text-purple-900 mb-1">
+                            Drag &amp; drop photos here
+                          </p>
+                          <p className="text-sm text-purple-600/70">
+                            High quality photos make your item sell faster
+                          </p>
                         </div>
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="desc" className="text-purple-900 font-bold">Description</Label>
-                    <Textarea 
-                      id="desc" 
+                    <Label
+                      htmlFor="desc"
+                      className="text-purple-900 font-bold"
+                    >
+                      Description
+                    </Label>
+                    <Textarea
+                      id="desc"
                       value={formData.description}
-                      onChange={e => setFormData({...formData, description: e.target.value})}
-                      placeholder="Describe the item's features, history, and any flaws..." 
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="Describe the item's features, history, and any flaws..."
                       className="rounded-xl bg-cream-50 border-purple-200 p-4 min-h-[120px]"
                     />
                   </div>
@@ -214,17 +282,29 @@ export default function PostItem() {
                   transition={{ duration: 0.3 }}
                   className="space-y-8"
                 >
-                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">Categorize it</h2>
-                  
+                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
+                    Categorize it
+                  </h2>
+
                   <div>
-                    <Label className="text-purple-900 font-bold mb-3 block">Category</Label>
+                    <Label className="text-purple-900 font-bold mb-3 block">
+                      Category
+                    </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {['Furniture', 'Electronics', 'Kitchen', 'Clothing', 'Other'].map(cat => (
+                      {[
+                        "Furniture",
+                        "Electronics",
+                        "Kitchen",
+                        "Clothing",
+                        "Other",
+                      ].map((cat) => (
                         <button
                           key={cat}
                           type="button"
-                          onClick={() => setFormData({...formData, category: cat})}
-                          className={`p-4 rounded-xl border text-center transition-all ${formData.category === cat ? 'bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm' : 'bg-white border-purple-100 text-purple-700 hover:border-purple-300'}`}
+                          onClick={() =>
+                            setFormData({ ...formData, category: cat })
+                          }
+                          className={`p-4 rounded-xl border text-center transition-all ${formData.category === cat ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
                         >
                           {cat}
                         </button>
@@ -233,39 +313,65 @@ export default function PostItem() {
                   </div>
 
                   <div>
-                    <Label className="text-purple-900 font-bold mb-3 block">Condition</Label>
+                    <Label className="text-purple-900 font-bold mb-3 block">
+                      Condition
+                    </Label>
                     <div className="grid grid-cols-2 gap-3">
-                      {['New', 'Like New', 'Used', 'Needs Love'].map(cond => (
-                        <button
-                          key={cond}
-                          type="button"
-                          onClick={() => setFormData({...formData, condition: cond})}
-                          className={`p-4 rounded-xl border text-center transition-all ${formData.condition === cond ? 'bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm' : 'bg-white border-purple-100 text-purple-700 hover:border-purple-300'}`}
-                        >
-                          {cond}
-                        </button>
-                      ))}
+                      {["New", "Like New", "Used", "Needs Love"].map(
+                        (cond) => (
+                          <button
+                            key={cond}
+                            type="button"
+                            onClick={() =>
+                              setFormData({ ...formData, condition: cond })
+                            }
+                            className={`p-4 rounded-xl border text-center transition-all ${formData.condition === cond ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
+                          >
+                            {cond}
+                          </button>
+                        )
+                      )}
                     </div>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="oprice" className="text-purple-900 font-bold">Original Price (₪)</Label>
-                      <Input 
-                        id="oprice" 
+                      <Label
+                        htmlFor="oprice"
+                        className="text-purple-900 font-bold"
+                      >
+                        Original Price (₪)
+                      </Label>
+                      <Input
+                        id="oprice"
                         type="number"
                         value={formData.originalPrice}
-                        onChange={e => setFormData({...formData, originalPrice: e.target.value})}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            originalPrice: e.target.value,
+                          })
+                        }
                         className="rounded-xl bg-cream-50 border-purple-200 p-6 text-lg"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="sprice" className="text-purple-900 font-bold">Selling Price (₪)</Label>
-                      <Input 
-                        id="sprice" 
+                      <Label
+                        htmlFor="sprice"
+                        className="text-purple-900 font-bold"
+                      >
+                        Selling Price (₪)
+                      </Label>
+                      <Input
+                        id="sprice"
                         type="number"
                         value={formData.sellPrice}
-                        onChange={e => setFormData({...formData, sellPrice: e.target.value})}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            sellPrice: e.target.value,
+                          })
+                        }
                         className="rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900"
                       />
                     </div>
@@ -283,14 +389,18 @@ export default function PostItem() {
                   transition={{ duration: 0.3 }}
                   className="space-y-6"
                 >
-                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">Where is it located?</h2>
-                  
+                  <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
+                    Where is it located?
+                  </h2>
+
                   <div className="space-y-2">
                     <Label className="text-purple-900 font-bold">City</Label>
-                    <select 
+                    <select
                       className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-purple-500 focus:border-purple-500 outline-none"
                       value={formData.city}
-                      onChange={e => setFormData({...formData, city: e.target.value})}
+                      onChange={(e) =>
+                        setFormData({ ...formData, city: e.target.value })
+                      }
                     >
                       <option value="">Select a city...</option>
                       <option value="Tel Aviv">Tel Aviv</option>
@@ -304,52 +414,67 @@ export default function PostItem() {
                     <h3 className="font-bold text-purple-900 mb-4">Summary</h3>
                     <div className="flex gap-4">
                       <div className="w-20 h-20 bg-cream-100 rounded-xl overflow-hidden shrink-0">
-                        {formData.images[0] && <img src={formData.images[0]} className="w-full h-full object-cover" alt="" />}
+                        {formData.images[0] && (
+                          <img
+                            src={formData.images[0]}
+                            className="w-full h-full object-cover"
+                            alt=""
+                          />
+                        )}
                       </div>
                       <div>
-                        <div className="font-bold text-lg text-purple-900">{formData.title || 'Untitled Item'}</div>
-                        <div className="text-purple-600 font-bold text-xl">₪{formData.sellPrice || '0'}</div>
-                        <div className="text-sm text-purple-500">{formData.category} • {formData.condition} • {formData.city}</div>
+                        <div className="font-bold text-lg text-purple-900">
+                          {formData.title || "Untitled Item"}
+                        </div>
+                        <div className="text-purple-600 font-bold text-xl">
+                          ₪{formData.sellPrice || "0"}
+                        </div>
+                        <div className="text-sm text-purple-500">
+                          {formData.category} &bull; {formData.condition} &bull;{" "}
+                          {formData.city}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </motion.div>
               )}
-
             </AnimatePresence>
 
             <div className="flex justify-between mt-10 pt-6 border-t border-purple-100">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleBack}
                 disabled={step === 1}
                 className="rounded-full px-6 border-purple-200 text-purple-900 disabled:opacity-30"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back
               </Button>
-              
+
               {step < 3 ? (
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={handleNext}
                   className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white shadow-md"
                 >
                   Next <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={isSubmitting}
                   className="rounded-full px-8 bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white shadow-lg"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Post Listing"}
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Post Listing"
+                  )}
                 </Button>
               )}
             </div>
           </form>
         </div>
-
       </div>
     </div>
   );

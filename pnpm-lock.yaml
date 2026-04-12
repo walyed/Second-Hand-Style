@@ -223,9 +223,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.90.21
         version: 5.90.21(react@19.1.0)
-      '@workspace/api-client-react':
-        specifier: workspace:*
-        version: link:../../lib/api-client-react
       canvas-confetti:
         specifier: ^1.9.4
         version: 1.9.4

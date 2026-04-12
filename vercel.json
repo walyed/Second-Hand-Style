@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "pnpm install",
-  "buildCommand": "cd artifacts/marketplace && pnpm build",
+  "buildCommand": "pnpm --filter @workspace/marketplace build",
   "outputDirectory": "artifacts/marketplace/.next"
 }

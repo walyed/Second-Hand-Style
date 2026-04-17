@@ -4,12 +4,31 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { MapPin, Heart } from 'lucide-react';
-import { Listing } from '@/lib/dummy-data';
+import { Listing } from '@/lib/api';
+import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const [isWatchlisted, setIsWatchlisted] = React.useState(listing.isWatchlisted);
+  const { user } = useAuth();
+
+  const toggleWatchlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const newVal = !isWatchlisted;
+    setIsWatchlisted(newVal);
+    try {
+      if (newVal) {
+        await api.addToWatchlist(listing.id);
+      } else {
+        await api.removeFromWatchlist(listing.id);
+      }
+    } catch {
+      setIsWatchlisted(!newVal); // revert on error
+    }
+  };
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
@@ -39,10 +58,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           {listing.condition}
         </Badge>
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            setIsWatchlisted(!isWatchlisted);
-          }}
+          onClick={toggleWatchlist}
           className="absolute top-3 right-3 p-2 rounded-full bg-white/80 backdrop-blur-sm text-purple-900 hover:text-purple-600 transition-colors z-10"
         >
           <motion.div whileTap={{ scale: 0.8, rotate: isWatchlisted ? [0, -15, 15, 0] : 0 }}>

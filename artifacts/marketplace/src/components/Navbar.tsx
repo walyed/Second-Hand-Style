@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Menu, X, Globe, User } from 'lucide-react';
+import { Menu, X, Globe, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { useAuth } from '@/lib/auth-context';
 
 export function Navbar() {
   const pathname = usePathname();
+  const { profile, signOut } = useAuth();
   const [lang, setLang] = React.useState('EN');
   
   const switchLang = () => {
@@ -31,7 +33,6 @@ export function Navbar() {
     { href: '/browse', label: 'Browse' },
     { href: '/post', label: 'Sell' },
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/admin', label: 'Admin' },
   ];
 
   return (
@@ -58,11 +59,25 @@ export function Navbar() {
               <Globe className="w-4 h-4" />
               {lang}
             </button>
-            <Link href="/login">
-              <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-full px-6">
-                Login
-              </Button>
-            </Link>
+            {profile ? (
+              <div className="flex items-center gap-2">
+                <Link href={profile.isAdmin ? '/admin' : '/dashboard'}>
+                  <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-full px-6">
+                    <User className="w-4 h-4 mr-1" />
+                    {profile.fullName.split(' ')[0]}
+                  </Button>
+                </Link>
+                <button onClick={signOut} className="text-purple-900 hover:text-purple-600 transition-colors" title="Sign out">
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-full px-6">
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -85,9 +100,15 @@ export function Navbar() {
                   </Link>
                 ))}
                 <div className="h-px bg-purple-200/50 my-2" />
-                <Link href="/login" className="text-lg font-medium text-purple-600">
-                  Login / Register
-                </Link>
+                {profile ? (
+                  <button onClick={signOut} className="text-lg font-medium text-red-500 hover:text-red-700 text-left">
+                    Sign Out
+                  </button>
+                ) : (
+                  <Link href="/login" className="text-lg font-medium text-purple-600">
+                    Login / Register
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -8,29 +8,52 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 export default function Login() {
   const router = useRouter();
+  const { signIn, profile, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect when profile becomes available after login
+  useEffect(() => {
+    if (profile && !authLoading) {
+      router.replace(profile.isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [profile, authLoading, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setHasError(false);
 
-    setTimeout(() => {
+    const form = e.target as HTMLFormElement;
+    const identifier = (form.elements.namedItem("identifier") as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    if (!identifier) {
+      setHasError(true);
       setIsLoading(false);
-      const form = e.target as HTMLFormElement;
-      const phone = (form.elements.namedItem("phone") as HTMLInputElement)
-        .value;
-      if (phone.length < 5) {
-        setHasError(true);
-      } else {
-        router.push("/dashboard");
-      }
-    }, 1500);
+      toast.error("Please enter your email or phone number");
+      return;
+    }
+
+    const { error } = await signIn(identifier, password);
+
+    if (error) {
+      setIsLoading(false);
+      setHasError(true);
+      toast.error(error);
+    } else {
+      toast.success("Welcome back!");
+      setLoginSuccess(true);
+      // Don't call router.push here — the useEffect above handles redirect
+      // once profile state is committed by React
+    }
   };
 
   return (
@@ -88,24 +111,17 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-purple-900 font-bold">
-                  Phone Number
+                <Label htmlFor="identifier" className="text-purple-900 font-bold">
+                  Email or Phone Number
                 </Label>
-                <div className="flex">
-                  <select className="bg-cream-100 border border-r-0 border-purple-200 text-purple-900 text-sm rounded-l-xl focus:ring-purple-500 focus:border-purple-500 block p-3 outline-none">
-                    <option>🇮🇱 +972</option>
-                    <option>🇵🇸 +970</option>
-                    <option>🇯🇴 +962</option>
-                  </select>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="50 123 4567"
-                    className="rounded-l-none rounded-r-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
-                    required
-                  />
-                </div>
+                <Input
+                  id="identifier"
+                  name="identifier"
+                  type="text"
+                  placeholder="email@example.com or 0501234567"
+                  className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
+                  required
+                />
               </div>
 
               <div className="space-y-2">

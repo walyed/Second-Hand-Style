@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -10,7 +10,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dummyListings } from "@/lib/dummy-data";
+import { api, type Listing } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 
 const categories = [
@@ -22,9 +22,11 @@ const categories = [
 ];
 
 export default function Home() {
-  const featuredItems = dummyListings
-    .filter((l) => l.condition === "Special Deal" || l.sellPrice > 2000)
-    .slice(0, 4);
+  const [featuredItems, setFeaturedItems] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    api.getListings({ limit: 4, sort: "newest" }).then(setFeaturedItems).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen bg-cream-50 text-purple-900 relative">

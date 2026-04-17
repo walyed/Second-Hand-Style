@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Filter, SlidersHorizontal } from "lucide-react";
-import { dummyListings, Category, Condition, City } from "@/lib/dummy-data";
+import { Filter, SlidersHorizontal, Loader2 } from "lucide-react";
+import { api, type Listing, type Category, type Condition, type City } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,7 +23,10 @@ export default function Browse() {
   const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">(
     "newest"
   );
-  const [isLoading, setIsLoading] = useState(false);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const categories: Category[] = [
     "Furniture",
@@ -48,32 +51,45 @@ export default function Browse() {
     }
   };
 
-  const filteredListings = dummyListings
-    .filter((listing) => {
-      if (
-        selectedCategories.length > 0 &&
-        !selectedCategories.includes(listing.category)
-      )
-        return false;
-      if (
-        selectedConditions.length > 0 &&
-        !selectedConditions.includes(listing.condition)
-      )
-        return false;
-      if (
-        selectedCities.length > 0 &&
-        !selectedCities.includes(listing.city)
-      )
-        return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === "price-asc") return a.sellPrice - b.sellPrice;
-      if (sortBy === "price-desc") return b.sellPrice - a.sellPrice;
-      return (
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    });
+  const fetchListings = async (reset = true) => {
+    const newOffset = reset ? 0 : offset;
+    if (reset) setIsLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      const sortMap: Record<string, string> = {
+        newest: "newest",
+        "price-asc": "price_asc",
+        "price-desc": "price_desc",
+      };
+      const data = await api.getListings({
+        category: selectedCategories.length > 0 ? selectedCategories.join(",") : undefined,
+        condition: selectedConditions.length > 0 ? selectedConditions.join(",") : undefined,
+        city: selectedCities.length > 0 ? selectedCities.join(",") : undefined,
+        sort: sortMap[sortBy],
+        limit: 18,
+        offset: newOffset,
+      });
+      if (reset) {
+        setListings(data);
+        setOffset(data.length);
+      } else {
+        setListings((prev) => [...prev, ...data]);
+        setOffset(newOffset + data.length);
+      }
+    } catch {
+      // Keep existing listings on error
+    } finally {
+      setIsLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchListings(true);
+  }, [selectedCategories, selectedConditions, selectedCities, sortBy]);
+
+  const filteredListings = listings;
 
   const FilterContent = () => (
     <div className="space-y-8">
@@ -268,13 +284,10 @@ export default function Browse() {
                     <Button
                       size="lg"
                       className="bg-white text-purple-900 border border-purple-200 hover:bg-purple-50 rounded-full px-8 shadow-sm"
-                      onClick={() => {
-                        setIsLoading(true);
-                        setTimeout(() => setIsLoading(false), 1000);
-                      }}
-                      disabled={isLoading}
+                      onClick={() => fetchListings(false)}
+                      disabled={loadingMore}
                     >
-                      {isLoading ? (
+                      {loadingMore ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
                           Loading...

@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { dummyListings } from "@/lib/dummy-data";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Package,
@@ -10,28 +12,60 @@ import {
   AlertCircle,
   Search,
   LayoutDashboard,
-  Settings,
-  Shield,
-  Bell,
-  Globe,
-  Lock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-type Tab = "dashboard" | "items" | "users" | "settings";
+type Tab = "dashboard" | "items" | "users";
 
 export default function Admin() {
+  const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const inProcessListings = dummyListings.filter(
-    (l) => l.condition === "Special Deal"
-  );
+  const [stats, setStats] = useState<any>(null);
+  const [allListings, setAllListings] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadData = () => {
+    Promise.all([
+      api.getAdminStats().catch(() => null),
+      api.getAdminListings().catch(() => []),
+      api.getAdminUsers().catch(() => []),
+    ]).then(([s, l, u]) => {
+      setStats(s);
+      setAllListings(l);
+      setAllUsers(u);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!profile || !profile.isAdmin) {
+      router.replace("/");
+      return;
+    }
+    loadData();
+  }, [profile, authLoading, router]);
+
+  // Show loading spinner while auth is resolving
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
+        <div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!profile?.isAdmin) return null;
+
+  const inProcessListings = allListings.filter((l: any) => l.status === "in_process");
 
   const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { id: "items", label: "Items", icon: <Package className="w-5 h-5" /> },
     { id: "users", label: "Users", icon: <Users className="w-5 h-5" /> },
-    { id: "settings", label: "Settings", icon: <Settings className="w-5 h-5" /> },
   ];
 
   return (
@@ -72,10 +106,9 @@ export default function Admin() {
       <main className="flex-1 overflow-y-auto p-6 md:p-10 bg-cream-50 text-purple-900">
         <div className="max-w-6xl mx-auto space-y-10">
           <AnimatePresence mode="wait">
-            {activeTab === "dashboard" && <DashboardView inProcessListings={inProcessListings} />}
-            {activeTab === "items" && <ItemsView listings={dummyListings} />}
-            {activeTab === "users" && <UsersView />}
-            {activeTab === "settings" && <SettingsView />}
+            {activeTab === "dashboard" && <DashboardView inProcessListings={inProcessListings} stats={stats} recentUsers={allUsers.slice(0, 5)} onStatusChange={loadData} />}
+            {activeTab === "items" && <ItemsView listings={allListings} onStatusChange={loadData} />}
+            {activeTab === "users" && <UsersView users={allUsers} />}
           </AnimatePresence>
         </div>
       </main>
@@ -84,7 +117,27 @@ export default function Admin() {
 }
 
 /* ─── Dashboard Tab ─── */
-function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyListings }) {
+function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }: { inProcessListings: any[]; stats: any; recentUsers: any[]; onStatusChange: () => void }) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleConfirmDeal = async (listingId: string) => {
+    setActionLoading(listingId);
+    try {
+      await api.updateListingStatus(listingId, "sold");
+      onStatusChange();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
+
+  const handleRejectDeal = async (listingId: string) => {
+    setActionLoading(listingId);
+    try {
+      await api.updateListingStatus(listingId, "active");
+      onStatusChange();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
+
   return (
     <motion.div
       key="dashboard"
@@ -109,10 +162,10 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Total Items", value: "2,451", icon: <Package className="w-5 h-5 text-blue-600" /> },
-          { label: "Active Listings", value: "1,832", icon: <Activity className="w-5 h-5 text-green-600" /> },
-          { label: "Total Users", value: "4,192", icon: <Users className="w-5 h-5 text-purple-600" /> },
-          { label: "Deals in Process", value: "24", icon: <AlertCircle className="w-5 h-5 text-amber-600" /> },
+          { label: "Total Items", value: String(stats?.total ?? 0), icon: <Package className="w-5 h-5 text-blue-600" /> },
+          { label: "Active Listings", value: String(stats?.active ?? 0), icon: <Activity className="w-5 h-5 text-green-600" /> },
+          { label: "Total Users", value: String(stats?.totalUsers ?? 0), icon: <Users className="w-5 h-5 text-purple-600" /> },
+          { label: "Deals in Process", value: String(stats?.inProcess ?? 0), icon: <AlertCircle className="w-5 h-5 text-amber-600" /> },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -136,7 +189,7 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
           <h2 className="text-xl font-bold font-serif flex items-center gap-2">
             Action Required{" "}
             <Badge className="bg-amber-100 text-amber-700 border-amber-300">
-              24 Pending
+              {inProcessListings.length} Pending
             </Badge>
           </h2>
 
@@ -146,12 +199,20 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
                 <tr>
                   <th className="p-4 font-medium">Item</th>
                   <th className="p-4 font-medium">Seller</th>
+                  <th className="p-4 font-medium">Buyer</th>
                   <th className="p-4 font-medium">Amount</th>
                   <th className="p-4 font-medium text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {inProcessListings.map((item, i) => (
+                {inProcessListings.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-8 text-center text-purple-400">
+                      No pending actions
+                    </td>
+                  </tr>
+                ) : (
+                  inProcessListings.map((item, i) => (
                   <motion.tr
                     key={item.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -166,24 +227,53 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700">
-                          {item.seller.name.charAt(0)}
+                          {(item.sellerName || "?").charAt(0)}
                         </div>
-                        <span>{item.seller.name.split(" ")[0]}</span>
+                        <span>{(item.sellerName || "Unknown").split(" ")[0]}</span>
                       </div>
+                    </td>
+                    <td className="p-4">
+                      {item.buyerName ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+                              {item.buyerName.charAt(0)}
+                            </div>
+                            <span>{item.buyerName}</span>
+                          </div>
+                          {item.buyerPhone && (
+                            <div className="text-xs text-purple-400 mt-1 ml-8">{item.buyerPhone}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-purple-300 text-xs">No buyer info</span>
+                      )}
                     </td>
                     <td className="p-4 font-mono font-bold text-purple-700">
                       ₪{item.sellPrice}
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right space-x-2">
                       <Button
                         size="sm"
+                        disabled={actionLoading === item.id}
+                        onClick={() => handleConfirmDeal(item.id)}
                         className="bg-green-600 hover:bg-green-700 text-white rounded-full"
                       >
-                        Confirm Deal
+                        {actionLoading === item.id ? "..." : "Confirm"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading === item.id}
+                        onClick={() => handleRejectDeal(item.id)}
+                        className="border-red-300 text-red-600 hover:bg-red-50 rounded-full"
+                      >
+                        Reject
                       </Button>
                     </td>
                   </motion.tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -192,28 +282,32 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
         <div className="space-y-4">
           <h2 className="text-xl font-bold font-serif">Recent Users</h2>
           <div className="bg-white border border-purple-100 rounded-2xl p-4 space-y-4">
-            {[
-              { name: "Sarah J.", role: "Admin", color: "bg-red-50 text-red-600 border-red-200" },
-              { name: "Michael T.", role: "Seller", color: "bg-purple-50 text-purple-600 border-purple-200" },
-              { name: "Emma W.", role: "Buyer", color: "bg-blue-50 text-blue-600 border-blue-200" },
-              { name: "David L.", role: "Seller", color: "bg-purple-50 text-purple-600 border-purple-200" },
-              { name: "Rachel M.", role: "Buyer", color: "bg-blue-50 text-blue-600 border-blue-200" },
-            ].map((user, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between pb-4 border-b border-purple-50 last:border-0 last:pb-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700">
-                    {user.name.charAt(0)}
+            {recentUsers.length === 0 ? (
+              <p className="text-purple-400 text-sm">No users yet</p>
+            ) : (
+              recentUsers.map((user: any, i: number) => (
+                <div
+                  key={user.id || i}
+                  className="flex items-center justify-between pb-4 border-b border-purple-50 last:border-0 last:pb-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-700">
+                      {(user.fullName || "?").charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-medium">{user.fullName}</div>
+                      <div className="text-xs text-purple-400">{user.phone}</div>
+                    </div>
                   </div>
-                  <div className="font-medium">{user.name}</div>
+                  <Badge variant="outline" className={
+                    user.isAdmin ? "bg-red-50 text-red-600 border-red-200"
+                    : "bg-purple-50 text-purple-600 border-purple-200"
+                  }>
+                    {user.isAdmin ? "Admin" : "User"}
+                  </Badge>
                 </div>
-                <Badge variant="outline" className={user.color}>
-                  {user.role}
-                </Badge>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -222,7 +316,25 @@ function DashboardView({ inProcessListings }: { inProcessListings: typeof dummyL
 }
 
 /* ─── Items Tab ─── */
-function ItemsView({ listings }: { listings: typeof dummyListings }) {
+function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChange: () => void }) {
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleStatusChange = async (id: string, status: string) => {
+    setActionLoading(id);
+    try {
+      await api.updateListingStatus(id, status);
+      onStatusChange();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
+
+  const statusColors: Record<string, string> = {
+    active: "bg-green-100 text-green-800 border-green-200",
+    in_process: "bg-amber-100 text-amber-800 border-amber-200",
+    sold: "bg-blue-100 text-blue-800 border-blue-200",
+    removed: "bg-red-100 text-red-800 border-red-200",
+  };
+
   return (
     <motion.div
       key="items"
@@ -251,9 +363,9 @@ function ItemsView({ listings }: { listings: typeof dummyListings }) {
               <th className="p-4 font-medium">Image</th>
               <th className="p-4 font-medium">Title</th>
               <th className="p-4 font-medium">Category</th>
-              <th className="p-4 font-medium">Condition</th>
+              <th className="p-4 font-medium">Status</th>
               <th className="p-4 font-medium">Price</th>
-              <th className="p-4 font-medium">City</th>
+              <th className="p-4 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -266,15 +378,29 @@ function ItemsView({ listings }: { listings: typeof dummyListings }) {
                 className="border-b border-purple-50 hover:bg-purple-50/50 transition-colors"
               >
                 <td className="p-4">
-                  <img src={item.images[0]} alt={item.title} className="w-12 h-12 rounded-lg object-cover" />
+                  <img src={item.images?.[0] || ""} alt={item.title} className="w-12 h-12 rounded-lg object-cover" />
                 </td>
                 <td className="p-4 font-bold text-purple-900">{item.title}</td>
                 <td className="p-4 text-purple-600">{item.category}</td>
                 <td className="p-4">
-                  <Badge variant="outline" className="text-xs">{item.condition}</Badge>
+                  <Badge variant="outline" className={`text-xs ${statusColors[item.status] || ""}`}>
+                    {item.status === "in_process" ? "In Process" : item.status?.charAt(0).toUpperCase() + item.status?.slice(1)}
+                  </Badge>
                 </td>
                 <td className="p-4 font-mono font-bold text-purple-700">₪{item.sellPrice}</td>
-                <td className="p-4 text-purple-500">{item.city}</td>
+                <td className="p-4">
+                  <select
+                    disabled={actionLoading === item.id}
+                    value={item.status}
+                    onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                    className="text-xs border border-purple-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 ring-purple-400"
+                  >
+                    <option value="active">Active</option>
+                    <option value="in_process">In Process</option>
+                    <option value="sold">Sold</option>
+                    <option value="removed">Removed</option>
+                  </select>
+                </td>
               </motion.tr>
             ))}
           </tbody>
@@ -285,15 +411,7 @@ function ItemsView({ listings }: { listings: typeof dummyListings }) {
 }
 
 /* ─── Users Tab ─── */
-function UsersView() {
-  const users = [
-    { name: "Sarah Johnson", email: "sarah@example.com", role: "Admin", status: "Active", joined: "Jan 2025" },
-    { name: "Michael Torres", email: "michael@example.com", role: "Seller", status: "Active", joined: "Mar 2025" },
-    { name: "Emma Williams", email: "emma@example.com", role: "Buyer", status: "Active", joined: "Apr 2025" },
-    { name: "David Levi", email: "david@example.com", role: "Seller", status: "Inactive", joined: "Feb 2025" },
-    { name: "Rachel Miller", email: "rachel@example.com", role: "Buyer", status: "Active", joined: "May 2025" },
-    { name: "Noam Cohen", email: "noam@example.com", role: "Seller", status: "Active", joined: "Jun 2025" },
-  ];
+function UsersView({ users }: { users: any[] }) {
 
   return (
     <motion.div
@@ -306,9 +424,6 @@ function UsersView() {
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold font-serif">User Management</h1>
-        <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6">
-          Add User
-        </Button>
       </div>
 
       <div className="bg-white border border-purple-100 rounded-2xl overflow-hidden">
@@ -316,16 +431,16 @@ function UsersView() {
           <thead className="bg-purple-50 border-b border-purple-100 text-purple-500">
             <tr>
               <th className="p-4 font-medium">User</th>
-              <th className="p-4 font-medium">Email</th>
+              <th className="p-4 font-medium">Phone</th>
               <th className="p-4 font-medium">Role</th>
               <th className="p-4 font-medium">Status</th>
               <th className="p-4 font-medium">Joined</th>
             </tr>
           </thead>
           <tbody>
-            {users.map((user, i) => (
+            {users.map((user: any, i: number) => (
               <motion.tr
-                key={user.email}
+                key={user.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: i * 0.05 }}
@@ -334,26 +449,25 @@ function UsersView() {
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-700">
-                      {user.name.charAt(0)}
+                      {user.fullName?.charAt(0) || "?"}
                     </div>
-                    <span className="font-medium text-purple-900">{user.name}</span>
+                    <span className="font-medium text-purple-900">{user.fullName}</span>
                   </div>
                 </td>
-                <td className="p-4 text-purple-500">{user.email}</td>
+                <td className="p-4 text-purple-500">{user.phone}</td>
                 <td className="p-4">
                   <Badge variant="outline" className={
-                    user.role === "Admin" ? "bg-red-50 text-red-600 border-red-200"
-                    : user.role === "Seller" ? "bg-purple-50 text-purple-600 border-purple-200"
-                    : "bg-blue-50 text-blue-600 border-blue-200"
-                  }>{user.role}</Badge>
+                    user.isAdmin ? "bg-red-50 text-red-600 border-red-200"
+                    : "bg-purple-50 text-purple-600 border-purple-200"
+                  }>{user.isAdmin ? "Admin" : "User"}</Badge>
                 </td>
                 <td className="p-4">
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${user.status === "Active" ? "text-green-600" : "text-red-500"}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${user.status === "Active" ? "bg-green-500" : "bg-red-400"}`} />
-                    {user.status}
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    Active
                   </span>
                 </td>
-                <td className="p-4 text-purple-500">{user.joined}</td>
+                <td className="p-4 text-purple-500">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}</td>
               </motion.tr>
             ))}
           </tbody>
@@ -363,41 +477,4 @@ function UsersView() {
   );
 }
 
-/* ─── Settings Tab ─── */
-function SettingsView() {
-  return (
-    <motion.div
-      key="settings"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.2 }}
-      className="space-y-8"
-    >
-      <h1 className="text-3xl font-bold font-serif">Settings</h1>
 
-      <div className="grid gap-6">
-        {[
-          { icon: <Globe className="w-5 h-5 text-purple-600" />, title: "General", desc: "Site name, language, timezone, and regional preferences." },
-          { icon: <Shield className="w-5 h-5 text-purple-600" />, title: "Moderation", desc: "Review queues, content policies, and auto-flag rules." },
-          { icon: <Bell className="w-5 h-5 text-purple-600" />, title: "Notifications", desc: "Email templates, push settings, and alert thresholds." },
-          { icon: <Lock className="w-5 h-5 text-purple-600" />, title: "Security", desc: "Two-factor auth, session policies, and API keys." },
-        ].map((section, i) => (
-          <motion.div
-            key={section.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="bg-white border border-purple-100 rounded-2xl p-6 flex items-start gap-4 hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="p-3 bg-purple-50 rounded-xl">{section.icon}</div>
-            <div>
-              <h3 className="font-bold text-lg text-purple-900">{section.title}</h3>
-              <p className="text-sm text-purple-500 mt-1">{section.desc}</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
-  );
-}

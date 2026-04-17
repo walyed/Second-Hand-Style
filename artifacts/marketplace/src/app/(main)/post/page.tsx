@@ -18,8 +18,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import confetti from "canvas-confetti";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export default function PostItem() {
+  const router = useRouter();
+  const { profile, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     title: "",
@@ -35,15 +42,34 @@ export default function PostItem() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleNext = () => setStep((s) => Math.min(s + 1, 3));
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!profile) {
+      toast.error("Please log in to post an item");
+      router.push("/login");
+      return;
+    }
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      await api.createListing({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        condition: formData.condition,
+        city: formData.city,
+        originalPrice: Number(formData.originalPrice),
+        sellPrice: Number(formData.sellPrice),
+        images: formData.images.length > 0
+          ? formData.images
+          : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800"],
+      });
+
       setIsSubmitting(false);
       setIsSuccess(true);
       confetti({
@@ -52,19 +78,48 @@ export default function PostItem() {
         origin: { y: 0.6 },
         colors: ["#7B3FB5", "#9B5FD4", "#C9A84C"],
       });
-    }, 1500);
+    } catch (err: any) {
+      setIsSubmitting(false);
+      toast.error(err.message || "Failed to create listing");
+    }
+  };
+
+  const handleFiles = async (files: FileList | File[]) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast.error("Please select image files");
+      return;
+    }
+
+    for (const file of imageFiles) {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `listings/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("listing-images")
+        .upload(path, file, { contentType: file.type });
+
+      if (error) {
+        // If bucket doesn't exist or upload fails, fall back to a local preview URL
+        const url = URL.createObjectURL(file);
+        setFormData((prev) => ({ ...prev, images: [...prev.images, url] }));
+      } else {
+        const { data: urlData } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(path);
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, urlData.publicUrl],
+        }));
+      }
+    }
   };
 
   const handleImageDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    setFormData((prev) => ({
-      ...prev,
-      images: [
-        ...prev.images,
-        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-      ],
-    }));
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
   };
 
   if (isSuccess) {
@@ -189,17 +244,19 @@ export default function PostItem() {
                       className={`border-2 border-dashed rounded-2xl p-10 text-center transition-colors cursor-pointer
                         ${isDragging ? "border-purple-500 bg-purple-50" : "border-purple-200 bg-cream-50 hover:bg-white"}
                         ${formData.images.length > 0 ? "bg-white border-solid" : ""}`}
-                      onClick={() => {
-                        if (formData.images.length === 0) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            images: [
-                              "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-                            ],
-                          }));
-                        }
-                      }}
+                      onClick={() => fileInputRef.current?.click()}
                     >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files) handleFiles(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
                       {formData.images.length > 0 ? (
                         <div className="flex gap-4 overflow-x-auto">
                           {formData.images.map((img, i) => (
@@ -229,7 +286,13 @@ export default function PostItem() {
                               </button>
                             </div>
                           ))}
-                          <div className="w-32 h-32 rounded-xl border-2 border-dashed border-purple-200 flex items-center justify-center shrink-0 text-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-colors">
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                            className="w-32 h-32 rounded-xl border-2 border-dashed border-purple-200 flex items-center justify-center shrink-0 text-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                          >
                             <Plus className="w-8 h-8" />
                           </div>
                         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -9,19 +9,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+
 export default function Register() {
   const router = useRouter();
+  const { signUp, profile, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect when profile becomes available after signup
+  useEffect(() => {
+    if (profile && !authLoading) {
+      router.replace(profile.isAdmin ? "/admin" : "/dashboard");
+    }
+  }, [profile, authLoading, router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
+    const form = e.target as HTMLFormElement;
+    const fullName = (form.elements.namedItem("name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value.trim();
+    const phone = (form.elements.namedItem("phone") as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 1500);
+      return;
+    }
+
+    const { error } = await signUp(email, phone, password, fullName);
+
+    if (error) {
+      setIsLoading(false);
+      toast.error(error);
+    } else {
+      toast.success("Account created successfully!");
+      // Don't call router.push here — the useEffect above handles redirect
+    }
   };
 
   return (
@@ -89,24 +117,31 @@ export default function Register() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="email" className="text-purple-900 font-bold">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="email@example.com"
+                  className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="phone" className="text-purple-900 font-bold">
                   Phone Number
                 </Label>
-                <div className="flex">
-                  <select className="bg-cream-100 border border-r-0 border-purple-200 text-purple-900 text-sm rounded-l-xl focus:ring-purple-500 focus:border-purple-500 block p-3 outline-none">
-                    <option>🇮🇱 +972</option>
-                    <option>🇵🇸 +970</option>
-                    <option>🇯🇴 +962</option>
-                  </select>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    placeholder="50 123 4567"
-                    className="rounded-l-none rounded-r-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
-                    required
-                  />
-                </div>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="0501234567"
+                  className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
+                  required
+                />
               </div>
 
               <div className="space-y-2">

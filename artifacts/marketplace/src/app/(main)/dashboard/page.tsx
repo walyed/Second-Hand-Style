@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   Package,
@@ -12,15 +13,50 @@ import {
   User,
   Settings,
   LogOut,
-  Eye,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dummyListings } from "@/lib/dummy-data";
+import { api, type Listing } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Dashboard() {
+  const router = useRouter();
+  const { profile, loading: authLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("listed");
-  const userListings = dummyListings.slice(0, 3);
-  const watchlist = dummyListings.filter((l) => l.isWatchlisted);
+  const [myListings, setMyListings] = useState<Listing[]>([]);
+  const [watchlist, setWatchlist] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!profile) {
+      router.replace("/login");
+      return;
+    }
+    Promise.all([
+        api.getMyListings().catch(() => []),
+        api.getWatchlist().catch(() => []),
+      ]).then(([listings, wl]) => {
+        setMyListings(listings);
+        setWatchlist(wl);
+        setLoading(false);
+      });
+  }, [profile, authLoading, router]);
+
+  // Show loading spinner while auth is resolving
+  if (authLoading || (!profile && loading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  const userListings = myListings.filter((l) => l.status === "active");
+  const inProcessListings = myListings.filter((l) => l.status === "in_process");
+  const soldListings = myListings.filter((l) => l.status === "sold");
 
   const tabs = [
     {
@@ -51,11 +87,11 @@ export default function Dashboard() {
       <aside className="hidden md:flex w-64 bg-purple-900 text-cream-50 flex-col py-8 px-6 border-r border-purple-800 shrink-0">
         <div className="flex items-center gap-4 mb-12">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold to-yellow-300 flex items-center justify-center text-purple-900 font-bold text-xl shadow-lg">
-            D
+            {profile?.fullName?.charAt(0) || "?"}
           </div>
           <div>
-            <div className="font-bold text-lg">David Levi</div>
-            <div className="text-purple-300 text-sm">Seller Level: Pro</div>
+            <div className="font-bold text-lg">{profile?.fullName || "User"}</div>
+            <div className="text-purple-300 text-sm">Seller</div>
           </div>
         </div>
 
@@ -84,7 +120,7 @@ export default function Dashboard() {
           </button>
         </nav>
 
-        <button className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-red-900/50 hover:text-red-400 transition-all">
+        <button onClick={() => { signOut(); router.push("/"); }} className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-red-900/50 hover:text-red-400 transition-all">
           <LogOut className="w-4 h-4" /> Log out
         </button>
       </aside>
@@ -106,12 +142,12 @@ export default function Dashboard() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             {[
-              { label: "Active Listings", value: "3", color: "bg-white" },
-              { label: "In Process", value: "1", color: "bg-purple-50" },
-              { label: "Total Sold", value: "12", color: "bg-cream-100" },
+              { label: "Active Listings", value: String(userListings.length), color: "bg-white" },
+              { label: "In Process", value: String(inProcessListings.length), color: "bg-purple-50" },
+              { label: "Total Sold", value: String(soldListings.length), color: "bg-cream-100" },
               {
                 label: "Watchlist",
-                value: watchlist.length.toString(),
+                value: String(watchlist.length),
                 color: "bg-white",
               },
             ].map((stat, i) => (
@@ -161,7 +197,8 @@ export default function Dashboard() {
                 </h2>
 
                 {activeTab === "listed" &&
-                  userListings.map((listing) => (
+                  (userListings.length > 0 ? (
+                    userListings.map((listing) => (
                     <div
                       key={listing.id}
                       className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
@@ -184,53 +221,129 @@ export default function Dashboard() {
                           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
                             Active
                           </span>
-                          <span className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-md font-medium flex items-center">
-                            <Eye className="w-3 h-3 mr-1" /> 42 views
-                          </span>
                         </div>
                       </div>
                       <div className="hidden sm:flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs border-purple-200"
-                        >
-                          Edit
-                        </Button>
+                        <Link href={`/item/${listing.id}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs border-purple-200"
+                          >
+                            View
+                          </Button>
+                        </Link>
                       </div>
+                    </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                      <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Package className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
+                        No active listings
+                      </h3>
+                      <p className="text-purple-600/70 mb-4">
+                        Start selling by listing your first item.
+                      </p>
+                      <Link href="/post">
+                        <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6">
+                          <Plus className="w-4 h-4 mr-2" /> List an Item
+                        </Button>
+                      </Link>
                     </div>
                   ))}
 
-                {activeTab === "process" && (
-                  <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
-                    <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Clock className="w-10 h-10 text-purple-400" />
+                {activeTab === "process" &&
+                  (inProcessListings.length > 0 ? (
+                    inProcessListings.map((listing) => (
+                      <div
+                        key={listing.id}
+                        className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
+                      >
+                        <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                          <img
+                            src={listing.images[0]}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center">
+                          <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
+                            {listing.title}
+                          </h3>
+                          <div className="text-purple-600 font-bold mb-2">
+                            ₪{listing.sellPrice}
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
+                              In Process
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                      <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Clock className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
+                        No items in process
+                      </h3>
+                      <p className="text-purple-600/70">
+                        When a buyer requests an item, it will appear here.
+                      </p>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                      No items in process
-                    </h3>
-                    <p className="text-purple-600/70">
-                      When a buyer requests an item, it will appear here.
-                    </p>
-                  </div>
-                )}
+                  ))}
 
-                {activeTab === "sold" && (
-                  <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
-                    <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle2 className="w-10 h-10 text-purple-400" />
+                {activeTab === "sold" &&
+                  (soldListings.length > 0 ? (
+                    soldListings.map((listing) => (
+                      <div
+                        key={listing.id}
+                        className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
+                      >
+                        <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                          <img
+                            src={listing.images[0]}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            alt=""
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center">
+                          <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
+                            {listing.title}
+                          </h3>
+                          <div className="text-purple-600 font-bold mb-2">
+                            ₪{listing.sellPrice}
+                          </div>
+                          <div className="flex gap-2">
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
+                              Sold
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                      <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
+                        No items sold yet
+                      </h3>
+                      <p className="text-purple-600/70">
+                        List your first item to get started.
+                      </p>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                      No items sold yet
-                    </h3>
-                    <p className="text-purple-600/70">
-                      List your first item to get started.
-                    </p>
-                  </div>
-                )}
+                  ))}
 
                 {activeTab === "watchlist" &&
-                  watchlist.map((listing) => (
+                  (watchlist.length > 0 ? (
+                    watchlist.map((listing) => (
                     <div
                       key={listing.id}
                       className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
@@ -251,7 +364,7 @@ export default function Dashboard() {
                         </div>
                         <div className="text-xs text-purple-400 flex items-center">
                           <Heart className="w-3 h-3 mr-1 fill-purple-400" />{" "}
-                          Saved 2 days ago
+                          Saved
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
@@ -264,6 +377,24 @@ export default function Dashboard() {
                           </Button>
                         </Link>
                       </div>
+                    </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                      <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Heart className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
+                        Watchlist is empty
+                      </h3>
+                      <p className="text-purple-600/70 mb-4">
+                        Browse items and save your favorites.
+                      </p>
+                      <Link href="/browse">
+                        <Button variant="outline" className="rounded-full px-6 border-purple-200">
+                          Browse Items
+                        </Button>
+                      </Link>
                     </div>
                   ))}
               </motion.div>

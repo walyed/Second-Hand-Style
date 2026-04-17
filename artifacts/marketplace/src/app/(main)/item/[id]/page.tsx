@@ -1,30 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, ShieldCheck, Heart, Info, Star } from "lucide-react";
-import { dummyListings } from "@/lib/dummy-data";
+import { ArrowLeft, MapPin, ShieldCheck, Heart, Info, Star, Loader2 } from "lucide-react";
+import { api, type Listing } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import NotFound from "@/app/not-found";
 
 export default function ItemDetail() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
-  const listing = dummyListings.find((l) => l.id === id);
+  const { profile, user } = useAuth();
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
-  const [isWatchlisted, setIsWatchlisted] = useState(
-    listing?.isWatchlisted ?? false
-  );
+  const [isWatchlisted, setIsWatchlisted] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [requestLoading, setRequestLoading] = useState(false);
 
-  if (!listing) return <NotFound />;
+  useEffect(() => {
+    api.getListing(id)
+      .then((data) => {
+        setListing(data);
+        setIsWatchlisted(data.isWatchlisted);
+        setLoading(false);
+      })
+      .catch(() => {
+        setNotFound(true);
+        setLoading(false);
+      });
+  }, [id]);
+
+  const toggleWatchlist = async () => {
+    if (!user || !listing) return;
+    const newVal = !isWatchlisted;
+    setIsWatchlisted(newVal);
+    try {
+      if (newVal) await api.addToWatchlist(listing.id);
+      else await api.removeFromWatchlist(listing.id);
+    } catch {
+      setIsWatchlisted(!newVal);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound || !listing) return <NotFound />;
 
   const getConditionColor = (condition: string) => {
     switch (condition) {
@@ -54,7 +92,7 @@ export default function ItemDetail() {
         </Link>
 
         <button
-          onClick={() => setIsWatchlisted(!isWatchlisted)}
+          onClick={toggleWatchlist}
           className="absolute top-6 right-6 z-20 bg-white/80 backdrop-blur-md p-3 rounded-full shadow-lg text-purple-900 hover:text-purple-600 transition-colors"
         >
           <motion.div
@@ -190,7 +228,7 @@ export default function ItemDetail() {
                       </div>
                       <div className="flex items-center text-gold text-sm font-medium">
                         <Star className="w-4 h-4 fill-current mr-1" />{" "}
-                        {listing.seller.rating} Rating
+                        Rating
                       </div>
                     </div>
                   </div>
@@ -200,9 +238,21 @@ export default function ItemDetail() {
                   <Button
                     size="lg"
                     className="w-full rounded-full py-6 text-lg bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 shadow-lg shadow-purple-500/30"
-                    onClick={() => setShowContactModal(true)}
+                    disabled={listing.status !== "active"}
+                    onClick={() => {
+                      if (!profile) {
+                        toast.error("Please log in to contact the seller");
+                        router.push("/login");
+                        return;
+                      }
+                      if (listing.seller.id === profile.id) {
+                        toast.error("This is your own listing");
+                        return;
+                      }
+                      setShowContactModal(true);
+                    }}
                   >
-                    Contact Seller
+                    {listing.status === "active" ? "Contact Seller" : listing.status === "in_process" ? "Deal In Progress" : "Not Available"}
                   </Button>
                 </motion.div>
               </div>
@@ -239,17 +289,28 @@ export default function ItemDetail() {
                 variant="outline"
                 className="flex-1 rounded-full border-purple-200 text-purple-900 hover:bg-purple-50"
                 onClick={() => setShowContactModal(false)}
+                disabled={requestLoading}
               >
                 Cancel
               </Button>
               <Button
                 className="flex-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
-                onClick={() => {
-                  setShowContactModal(false);
-                  alert("Request sent successfully!");
+                disabled={requestLoading}
+                onClick={async () => {
+                  setRequestLoading(true);
+                  try {
+                    await api.requestDeal(listing.id);
+                    setShowContactModal(false);
+                    setListing({ ...listing, status: "in_process" });
+                    toast.success("Request sent! The admin team will connect you with the seller.");
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to send request");
+                  } finally {
+                    setRequestLoading(false);
+                  }
                 }}
               >
-                Confirm Request
+                {requestLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Request"}
               </Button>
             </div>
           </div>

@@ -8,31 +8,22 @@ import { Menu, X, Globe, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { useAuth } from '@/lib/auth-context';
+import { useTranslation, type Lang } from '@/lib/i18n';
 
 export function Navbar() {
   const pathname = usePathname();
   const { profile, signOut } = useAuth();
-  const [lang, setLang] = React.useState('EN');
+  const { lang, setLang, t } = useTranslation();
   
   const switchLang = () => {
-    const nextLang = lang === 'EN' ? 'עברית' : lang === 'עברית' ? 'عربي' : 'EN';
+    const nextLang: Lang = lang === 'EN' ? 'עברית' : lang === 'עברית' ? 'عربي' : 'EN';
     setLang(nextLang);
-    document.documentElement.dir = nextLang === 'EN' ? 'ltr' : 'rtl';
-    localStorage.setItem('app-lang', nextLang);
   };
 
-  useEffect(() => {
-    const saved = localStorage.getItem('app-lang');
-    if (saved) {
-      setLang(saved);
-      document.documentElement.dir = saved === 'EN' ? 'ltr' : 'rtl';
-    }
-  }, []);
-
   const navLinks = [
-    { href: '/browse', label: 'Browse' },
-    { href: '/post', label: 'Sell' },
-    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/browse', label: t('nav.browse') },
+    { href: '/post', label: t('nav.sell') },
+    { href: '/dashboard', label: t('nav.dashboard') },
   ];
 
   return (
@@ -67,14 +58,14 @@ export function Navbar() {
                     {profile.fullName.split(' ')[0]}
                   </Button>
                 </Link>
-                <button onClick={signOut} className="text-purple-900 hover:text-purple-600 transition-colors" title="Sign out">
+                <button onClick={signOut} className="text-purple-900 hover:text-purple-600 transition-colors" title={t('nav.signOut')}>
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <Link href="/login">
                 <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white rounded-full px-6">
-                  Login
+                  {t('nav.login')}
                 </Button>
               </Link>
             )}
@@ -91,8 +82,8 @@ export function Navbar() {
               <button className="text-purple-900"><Menu className="w-6 h-6" /></button>
             </SheetTrigger>
             <SheetContent side={typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'left' : 'right'} className="bg-cream-50 border-purple-200/40">
-              <SheetTitle className="font-serif text-2xl mb-6">Menu</SheetTitle>
-              <SheetDescription className="sr-only">Navigation menu</SheetDescription>
+              <SheetTitle className="font-serif text-2xl mb-6">{t('nav.menu')}</SheetTitle>
+              <SheetDescription className="sr-only">{t('nav.navigationMenu')}</SheetDescription>
               <div className="flex flex-col gap-6 mt-8">
                 {navLinks.map((link) => (
                   <Link key={link.href} href={link.href} className="text-lg font-medium text-purple-900 hover:text-purple-600">
@@ -102,11 +93,11 @@ export function Navbar() {
                 <div className="h-px bg-purple-200/50 my-2" />
                 {profile ? (
                   <button onClick={signOut} className="text-lg font-medium text-red-500 hover:text-red-700 text-left">
-                    Sign Out
+                    {t('nav.signOut')}
                   </button>
                 ) : (
                   <Link href="/login" className="text-lg font-medium text-purple-600">
-                    Login / Register
+                    {t('nav.loginRegister')}
                   </Link>
                 )}
               </div>

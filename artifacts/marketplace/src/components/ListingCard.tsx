@@ -11,15 +11,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n';
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const [isWatchlisted, setIsWatchlisted] = React.useState(listing.isWatchlisted);
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const toggleWatchlist = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error("Please log in to save items to your watchlist");
+      toast.error(t('card.loginWatchlist'));
       return;
     }
     const newVal = !isWatchlisted;

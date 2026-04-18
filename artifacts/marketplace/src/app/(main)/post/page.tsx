@@ -23,10 +23,12 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "@/lib/i18n";
 
 export default function PostItem() {
   const router = useRouter();
   const { profile, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     title: "",
@@ -61,7 +63,7 @@ export default function PostItem() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) {
-      toast.error("Please log in to post an item");
+      toast.error(t('post.loginRequired'));
       router.push("/login");
       return;
     }
@@ -145,11 +147,10 @@ export default function PostItem() {
           <CheckCircle2 className="w-12 h-12 text-green-600" />
         </motion.div>
         <h1 className="font-serif text-5xl font-bold text-purple-900 mb-4">
-          Item Listed!
+          {t('post.success.title')}
         </h1>
         <p className="text-xl text-purple-700/80 max-w-md mb-8">
-          Your item is now live and waiting for a buyer. We&apos;ll notify you
-          when someone is interested.
+          {t('post.success.subtitle')}
         </p>
         <div className="flex gap-4">
           <Link href="/dashboard">
@@ -157,12 +158,12 @@ export default function PostItem() {
               variant="outline"
               className="rounded-full px-8 border-purple-200"
             >
-              Go to Dashboard
+              {t('post.goToDashboard')}
             </Button>
           </Link>
           <Link href="/browse">
             <Button className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white">
-              View Listing
+              {t('post.viewListing')}
             </Button>
           </Link>
         </div>
@@ -176,7 +177,7 @@ export default function PostItem() {
         {/* Header & Progress */}
         <div className="mb-12">
           <h1 className="font-serif text-4xl font-bold text-purple-900 mb-6">
-            List an Item
+            {t('post.title')}
           </h1>
 
           <div className="relative">
@@ -201,9 +202,9 @@ export default function PostItem() {
             </div>
           </div>
           <div className="flex justify-between text-xs font-bold text-purple-400 mt-2 uppercase tracking-wider">
-            <span>Photos &amp; Details</span>
-            <span>Category &amp; Price</span>
-            <span>Review &amp; Post</span>
+            <span>{t('post.step1')}</span>
+            <span>{t('post.step2')}</span>
+            <span>{t('post.step3')}</span>
           </div>
         </div>
 
@@ -222,7 +223,7 @@ export default function PostItem() {
                   className="space-y-6"
                 >
                   <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
-                    What are you selling?
+                    {t('post.whatSelling')}
                   </h2>
 
                   <div className="space-y-2">
@@ -230,7 +231,7 @@ export default function PostItem() {
                       htmlFor="title"
                       className="text-purple-900 font-bold"
                     >
-                      Title
+                      {t('post.titleLabel')}
                     </Label>
                     <Input
                       id="title"
@@ -238,13 +239,13 @@ export default function PostItem() {
                       onChange={(e) =>
                         setFormData({ ...formData, title: e.target.value })
                       }
-                      placeholder="e.g. Vintage Leather Sofa"
+                      placeholder={t('post.titlePlaceholder')}
                       className="rounded-xl bg-cream-50 border-purple-200 p-6 text-lg"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-purple-900 font-bold">Photos</Label>
+                    <Label className="text-purple-900 font-bold">{t('post.photos')}</Label>
                     <div
                       onDragOver={(e) => {
                         e.preventDefault();
@@ -313,10 +314,10 @@ export default function PostItem() {
                             <Upload className="w-8 h-8 text-purple-500" />
                           </div>
                           <p className="font-bold text-purple-900 mb-1">
-                            Drag &amp; drop photos here
+                            {t('post.dragDrop')}
                           </p>
                           <p className="text-sm text-purple-600/70">
-                            High quality photos make your item sell faster
+                            {t('post.photoTip')}
                           </p>
                         </div>
                       )}
@@ -328,7 +329,7 @@ export default function PostItem() {
                       htmlFor="desc"
                       className="text-purple-900 font-bold"
                     >
-                      Description
+                      {t('post.description')}
                     </Label>
                     <Textarea
                       id="desc"
@@ -339,7 +340,7 @@ export default function PostItem() {
                           description: e.target.value,
                         })
                       }
-                      placeholder="Describe the item's features, history, and any flaws..."
+                      placeholder={t('post.descPlaceholder')}
                       className="rounded-xl bg-cream-50 border-purple-200 p-4 min-h-[120px]"
                     />
                   </div>
@@ -357,12 +358,12 @@ export default function PostItem() {
                   className="space-y-8"
                 >
                   <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
-                    Categorize it
+                    {t('post.categorize')}
                   </h2>
 
                   <div>
                     <Label className="text-purple-900 font-bold mb-3 block">
-                      Category
+                      {t('post.categoryLabel')}
                     </Label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {[
@@ -380,7 +381,7 @@ export default function PostItem() {
                           }
                           className={`p-4 rounded-xl border text-center transition-all ${formData.category === cat ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
                         >
-                          {cat}
+                          {t(`cat.${cat}`)}
                         </button>
                       ))}
                     </div>
@@ -388,7 +389,7 @@ export default function PostItem() {
 
                   <div>
                     <Label className="text-purple-900 font-bold mb-3 block">
-                      Condition
+                      {t('post.conditionLabel')}
                     </Label>
                     <div className="grid grid-cols-2 gap-3">
                       {["New", "Used", "Refurbished", "Special Deal"].map(
@@ -401,7 +402,7 @@ export default function PostItem() {
                             }
                             className={`p-4 rounded-xl border text-center transition-all ${formData.condition === cond ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
                           >
-                            {cond}
+                            {t(`cond.${cond}`)}
                           </button>
                         )
                       )}
@@ -414,7 +415,7 @@ export default function PostItem() {
                         htmlFor="oprice"
                         className="text-purple-900 font-bold"
                       >
-                        Original Price (₪)
+                        {t('post.originalPrice')} (₪)
                       </Label>
                       <Input
                         id="oprice"
@@ -434,7 +435,7 @@ export default function PostItem() {
                         htmlFor="sprice"
                         className="text-purple-900 font-bold"
                       >
-                        Selling Price (₪)
+                        {t('post.sellingPrice')} (₪)
                       </Label>
                       <Input
                         id="sprice"
@@ -464,11 +465,11 @@ export default function PostItem() {
                   className="space-y-6"
                 >
                   <h2 className="font-serif text-2xl font-bold text-purple-900 border-b border-purple-100 pb-4">
-                    Where is it located?
+                    {t('post.whereLocated')}
                   </h2>
 
                   <div className="space-y-2">
-                    <Label className="text-purple-900 font-bold">City</Label>
+                    <Label className="text-purple-900 font-bold">{t('post.cityLabel')}</Label>
                     <select
                       className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-purple-500 focus:border-purple-500 outline-none"
                       value={formData.city}
@@ -476,16 +477,16 @@ export default function PostItem() {
                         setFormData({ ...formData, city: e.target.value })
                       }
                     >
-                      <option value="">Select a city...</option>
-                      <option value="Tel Aviv">Tel Aviv</option>
-                      <option value="Jerusalem">Jerusalem</option>
-                      <option value="Haifa">Haifa</option>
-                      <option value="Eilat">Eilat</option>
+                      <option value="">{t('post.selectCity')}</option>
+                      <option value="Tel Aviv">{t('city.Tel Aviv')}</option>
+                      <option value="Jerusalem">{t('city.Jerusalem')}</option>
+                      <option value="Haifa">{t('city.Haifa')}</option>
+                      <option value="Eilat">{t('city.Eilat')}</option>
                     </select>
                   </div>
 
                   <div className="mt-8 bg-purple-50 rounded-2xl p-6 border border-purple-100">
-                    <h3 className="font-bold text-purple-900 mb-4">Summary</h3>
+                    <h3 className="font-bold text-purple-900 mb-4">{t('post.summary')}</h3>
                     <div className="flex gap-4">
                       <div className="w-20 h-20 bg-cream-100 rounded-xl overflow-hidden shrink-0">
                         {formData.images[0] && (
@@ -498,7 +499,7 @@ export default function PostItem() {
                       </div>
                       <div>
                         <div className="font-bold text-lg text-purple-900">
-                          {formData.title || "Untitled Item"}
+                          {formData.title || t('post.untitled')}
                         </div>
                         <div className="text-purple-600 font-bold text-xl">
                           ₪{formData.sellPrice || "0"}
@@ -522,7 +523,7 @@ export default function PostItem() {
                 disabled={step === 1}
                 className="rounded-full px-6 border-purple-200 text-purple-900 disabled:opacity-30"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                <ArrowLeft className="w-4 h-4 mr-2" /> {t('post.back')}
               </Button>
 
               {step < 3 ? (
@@ -531,7 +532,7 @@ export default function PostItem() {
                   onClick={handleNext}
                   className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white shadow-md"
                 >
-                  Next <ArrowRight className="w-4 h-4 ml-2" />
+                  {t('post.next')} <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Button
@@ -542,7 +543,7 @@ export default function PostItem() {
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    "Post Listing"
+                    t('post.postListing')
                   )}
                 </Button>
               )}

@@ -15,8 +15,10 @@ import {
   SheetTitle,
   SheetHeader,
 } from "@/components/ui/sheet";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Browse() {
+  const { t } = useTranslation();
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [selectedCities, setSelectedCities] = useState<City[]>([]);
@@ -95,7 +97,7 @@ export default function Browse() {
     <div className="space-y-8">
       <div>
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
-          Category
+          {t('browse.category')}
         </h3>
         <div className="space-y-3">
           {categories.map((cat) => (
@@ -115,7 +117,7 @@ export default function Browse() {
                 htmlFor={`cat-${cat}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {cat}
+                {t(`cat.${cat}`)}
               </Label>
             </div>
           ))}
@@ -124,7 +126,7 @@ export default function Browse() {
 
       <div>
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
-          Condition
+          {t('browse.condition')}
         </h3>
         <div className="space-y-3">
           {conditions.map((cond) => (
@@ -144,7 +146,7 @@ export default function Browse() {
                 htmlFor={`cond-${cond}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {cond}
+                {t(`cond.${cond}`)}
               </Label>
             </div>
           ))}
@@ -153,7 +155,7 @@ export default function Browse() {
 
       <div>
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
-          Location
+          {t('browse.location')}
         </h3>
         <div className="space-y-3">
           {cities.map((city) => (
@@ -169,7 +171,7 @@ export default function Browse() {
                 htmlFor={`city-${city}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {city}
+                {t(`city.${city}`)}
               </Label>
             </div>
           ))}
@@ -183,12 +185,12 @@ export default function Browse() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <h1 className="font-serif text-4xl font-bold text-purple-900">
-            Explore Collection
+            {t('browse.title')}
           </h1>
 
           <div className="flex items-center gap-4">
             <div className="text-sm text-purple-600 font-medium">
-              Showing {filteredListings.length} results
+              {t('browse.showing')} {filteredListings.length} {t('browse.results')}
             </div>
 
             {/* Mobile Filter Trigger */}
@@ -198,7 +200,7 @@ export default function Browse() {
                   variant="outline"
                   className="md:hidden border-purple-200 text-purple-900"
                 >
-                  <Filter className="w-4 h-4 mr-2" /> Filters
+                  <Filter className="w-4 h-4 mr-2" /> {t('browse.filters')}
                 </Button>
               </SheetTrigger>
               <SheetContent
@@ -207,7 +209,7 @@ export default function Browse() {
               >
                 <SheetHeader>
                   <SheetTitle className="font-serif text-2xl mb-4">
-                    Filters
+                    {t('browse.filters')}
                   </SheetTitle>
                 </SheetHeader>
                 <FilterContent />
@@ -219,9 +221,9 @@ export default function Browse() {
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="bg-white border border-purple-200 text-purple-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 outline-none shadow-sm"
             >
-              <option value="newest">Newest Arrivals</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
+              <option value="newest">{t('browse.newest')}</option>
+              <option value="price-asc">{t('browse.priceLow')}</option>
+              <option value="price-desc">{t('browse.priceHigh')}</option>
             </select>
           </div>
         </div>
@@ -232,7 +234,7 @@ export default function Browse() {
             <div className="sticky top-24 glass rounded-3xl p-6 shadow-sm">
               <div className="flex items-center gap-2 mb-6">
                 <SlidersHorizontal className="w-5 h-5 text-purple-600" />
-                <h2 className="font-serif text-2xl font-bold">Filters</h2>
+                <h2 className="font-serif text-2xl font-bold">{t('browse.filters')}</h2>
               </div>
               <FilterContent />
             </div>
@@ -244,10 +246,10 @@ export default function Browse() {
               <div className="flex flex-col items-center justify-center py-20 text-center glass rounded-3xl">
                 <div className="text-4xl mb-4">🔍</div>
                 <h3 className="font-serif text-2xl font-bold mb-2">
-                  No items found
+                  {t('browse.noItems')}
                 </h3>
                 <p className="text-purple-600/80">
-                  Try adjusting your filters to see more results.
+                  {t('browse.adjustFilters')}
                 </p>
                 <Button
                   variant="outline"
@@ -258,7 +260,7 @@ export default function Browse() {
                     setSelectedCities([]);
                   }}
                 >
-                  Clear all filters
+                  {t('browse.clearFilters')}
                 </Button>
               </div>
             ) : (
@@ -290,10 +292,10 @@ export default function Browse() {
                       {loadingMore ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin" />
-                          Loading...
+                          {t('browse.loading')}
                         </div>
                       ) : (
-                        "Load More"
+                        t('browse.loadMore')
                       )}
                     </Button>
                   </div>

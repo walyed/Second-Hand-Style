@@ -11,10 +11,12 @@ import { Label } from "@/components/ui/label";
 
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Register() {
   const router = useRouter();
   const { signUp, profile, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,7 +38,7 @@ export default function Register() {
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t('register.passwordShort'));
       setIsLoading(false);
       return;
     }
@@ -47,7 +49,7 @@ export default function Register() {
       setIsLoading(false);
       toast.error(error);
     } else {
-      toast.success("Account created successfully!");
+      toast.success(t('register.success'));
       // Don't call router.push here — the useEffect above handles redirect
     }
   };
@@ -69,7 +71,7 @@ export default function Register() {
             animate={{ opacity: 1, y: 0 }}
             className="font-serif text-6xl font-bold mb-6"
           >
-            Join the circle.
+            {t('register.title')}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -77,8 +79,7 @@ export default function Register() {
             transition={{ delay: 0.2 }}
             className="text-xl text-purple-200 font-light leading-relaxed"
           >
-            &ldquo;Curated quality. Sustainable choices. A marketplace for those
-            who know.&rdquo;
+            &ldquo;{t('register.quote')}&rdquo;
           </motion.p>
         </div>
       </div>
@@ -93,9 +94,9 @@ export default function Register() {
         >
           <div className="text-center mb-10 lg:hidden">
             <h1 className="font-serif text-4xl font-bold text-purple-900 mb-2">
-              Join the circle.
+              {t('register.title')}
             </h1>
-            <p className="text-purple-600/80">Create your account</p>
+            <p className="text-purple-600/80">{t('register.subtitle')}</p>
           </div>
 
           <div className="glass rounded-3xl p-8 sm:p-10 shadow-xl relative">
@@ -104,13 +105,13 @@ export default function Register() {
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-purple-900 font-bold">
-                  Full Name
+                  {t('register.fullName')}
                 </Label>
                 <Input
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="e.g. David Levi"
+                  placeholder={t('register.namePlaceholder')}
                   className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
                   required
                 />
@@ -118,13 +119,13 @@ export default function Register() {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-purple-900 font-bold">
-                  Email
+                  {t('register.email')}
                 </Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder={t('register.emailPlaceholder')}
                   className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
                   required
                 />
@@ -132,13 +133,13 @@ export default function Register() {
 
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-purple-900 font-bold">
-                  Phone Number
+                  {t('register.phone')}
                 </Label>
                 <Input
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="0501234567"
+                  placeholder={t('register.phonePlaceholder')}
                   className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
                   required
                 />
@@ -149,7 +150,7 @@ export default function Register() {
                   htmlFor="password"
                   className="text-purple-900 font-bold"
                 >
-                  Password
+                  {t('register.password')}
                 </Label>
                 <div className="relative">
                   <Input
@@ -181,18 +182,18 @@ export default function Register() {
                 {isLoading ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : (
-                  "Create Account"
+                  t('register.submit')
                 )}
               </Button>
             </form>
 
             <div className="mt-8 text-center text-sm text-purple-700/80">
-              Already have an account?{" "}
+              {t('register.hasAccount')}{" "}
               <Link
                 href="/login"
                 className="font-bold text-purple-600 hover:text-purple-900 transition-colors"
               >
-                Log in
+                {t('register.loginLink')}
               </Link>
             </div>
           </div>

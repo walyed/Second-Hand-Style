@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CursorEffect } from "@/components/CursorEffect";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { AuthProvider } from "@/lib/auth-context";
+import { LanguageProvider } from "@/lib/i18n";
 
 const queryClient = new QueryClient();
 
@@ -14,12 +15,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <CursorEffect />
-          <ScrollProgress />
-          {children}
-          <Toaster position="top-right" richColors />
-        </TooltipProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <CursorEffect />
+            <ScrollProgress />
+            {children}
+            <Toaster position="top-right" richColors />
+          </TooltipProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

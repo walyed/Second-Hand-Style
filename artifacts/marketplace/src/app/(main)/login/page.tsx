@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Login() {
   const router = useRouter();
   const { signIn, profile, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -38,7 +40,7 @@ export default function Login() {
     if (!identifier) {
       setHasError(true);
       setIsLoading(false);
-      toast.error("Please enter your email or phone number");
+      toast.error(t('login.enterIdentifier'));
       return;
     }
 
@@ -49,7 +51,7 @@ export default function Login() {
       setHasError(true);
       toast.error(error);
     } else {
-      toast.success("Welcome back!");
+      toast.success(t('login.success'));
       setLoginSuccess(true);
       // Don't call router.push here — the useEffect above handles redirect
       // once profile state is committed by React
@@ -73,7 +75,7 @@ export default function Login() {
             animate={{ opacity: 1, y: 0 }}
             className="font-serif text-6xl font-bold mb-6"
           >
-            Welcome back.
+            {t('login.welcome')}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -81,8 +83,7 @@ export default function Login() {
             transition={{ delay: 0.2 }}
             className="text-xl text-purple-200 font-light leading-relaxed"
           >
-            &ldquo;The finest things in life are those that have already lived a
-            little.&rdquo;
+            &ldquo;{t('login.quote')}&rdquo;
           </motion.p>
         </div>
       </div>
@@ -97,9 +98,9 @@ export default function Login() {
         >
           <div className="text-center mb-10 lg:hidden">
             <h1 className="font-serif text-4xl font-bold text-purple-900 mb-2">
-              Welcome back.
+              {t('login.welcome')}
             </h1>
-            <p className="text-purple-600/80">Log in to your account</p>
+            <p className="text-purple-600/80">{t('login.subtitle')}</p>
           </div>
 
           <motion.div
@@ -112,13 +113,13 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
               <div className="space-y-2">
                 <Label htmlFor="identifier" className="text-purple-900 font-bold">
-                  Email or Phone Number
+                  {t('login.identifier')}
                 </Label>
                 <Input
                   id="identifier"
                   name="identifier"
                   type="text"
-                  placeholder="email@example.com or 0501234567"
+                  placeholder={t('login.identifierPlaceholder')}
                   className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
                   required
                 />
@@ -130,13 +131,13 @@ export default function Login() {
                     htmlFor="password"
                     className="text-purple-900 font-bold"
                   >
-                    Password
+                    {t('login.password')}
                   </Label>
                   <a
                     href="#"
                     className="text-sm font-medium text-purple-600 hover:text-purple-800"
                   >
-                    Forgot password?
+                    {t('login.forgotPassword')}
                   </a>
                 </div>
                 <div className="relative">
@@ -169,18 +170,18 @@ export default function Login() {
                 {isLoading ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
                 ) : (
-                  "Log In"
+                  t('login.submit')
                 )}
               </Button>
             </form>
 
             <div className="mt-8 text-center text-sm text-purple-700/80">
-              Don&apos;t have an account?{" "}
+              {t('login.noAccount')}{" "}
               <Link
                 href="/register"
                 className="font-bold text-purple-600 hover:text-purple-900 transition-colors"
               >
-                Register here
+                {t('login.registerHere')}
               </Link>
             </div>
           </motion.div>

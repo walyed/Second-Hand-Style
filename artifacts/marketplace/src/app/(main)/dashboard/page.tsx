@@ -19,10 +19,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { api, type Listing } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Dashboard() {
   const router = useRouter();
   const { profile, loading: authLoading, signOut } = useAuth();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("listed");
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [watchlist, setWatchlist] = useState<Listing[]>([]);
@@ -67,27 +69,27 @@ export default function Dashboard() {
   const tabs = [
     {
       id: "listed",
-      label: "Listed Items",
+      label: t('dash.tab.listed'),
       icon: <Package className="w-4 h-4" />,
     },
     {
       id: "process",
-      label: "In Process",
+      label: t('dash.tab.process'),
       icon: <Clock className="w-4 h-4" />,
     },
     {
       id: "sold",
-      label: "Sold",
+      label: t('dash.tab.sold'),
       icon: <CheckCircle2 className="w-4 h-4" />,
     },
     {
       id: "watchlist",
-      label: "Watchlist",
+      label: t('dash.tab.watchlist'),
       icon: <Heart className="w-4 h-4" />,
     },
     {
       id: "purchased",
-      label: "Purchased",
+      label: t('dash.tab.purchased'),
       icon: <ShoppingBag className="w-4 h-4" />,
     },
   ];
@@ -102,13 +104,13 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="font-bold text-lg">{profile?.fullName || "User"}</div>
-            <div className="text-purple-300 text-sm">Seller</div>
+            <div className="text-purple-300 text-sm">{t('dash.seller')}</div>
           </div>
         </div>
 
         <nav className="flex-1 space-y-2">
           <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-4">
-            Activity
+            {t('dash.activity')}
           </div>
           {tabs.map((tab) => (
             <button
@@ -121,18 +123,18 @@ export default function Dashboard() {
           ))}
 
           <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-8 mb-4">
-            Account
+            {t('dash.account')}
           </div>
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-purple-800/50 hover:text-white transition-all">
-            <User className="w-4 h-4" /> Profile
+            <User className="w-4 h-4" /> {t('dash.profile')}
           </button>
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-purple-800/50 hover:text-white transition-all">
-            <Settings className="w-4 h-4" /> Settings
+            <Settings className="w-4 h-4" /> {t('dash.settings')}
           </button>
         </nav>
 
         <button onClick={() => { signOut(); router.push("/"); }} className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-purple-300 hover:bg-red-900/50 hover:text-red-400 transition-all">
-          <LogOut className="w-4 h-4" /> Log out
+          <LogOut className="w-4 h-4" /> {t('dash.logOut')}
         </button>
       </aside>
 
@@ -141,11 +143,11 @@ export default function Dashboard() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h1 className="font-serif text-4xl font-bold text-purple-900">
-              Dashboard
+              {t('dash.title')}
             </h1>
             <Link href="/post">
               <Button className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 shadow-md">
-                <Plus className="w-5 h-5 mr-2" /> List New Item
+                <Plus className="w-5 h-5 mr-2" /> {t('dash.listNewItem')}
               </Button>
             </Link>
           </div>
@@ -153,11 +155,11 @@ export default function Dashboard() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
             {[
-              { label: "Active Listings", value: String(userListings.length), color: "bg-white" },
-              { label: "In Process", value: String(inProcessListings.length), color: "bg-purple-50" },
-              { label: "Total Sold", value: String(soldListings.length), color: "bg-cream-100" },
-              { label: "Watchlist", value: String(watchlist.length), color: "bg-white" },
-              { label: "Purchased", value: String(purchases.length), color: "bg-purple-50" },
+              { label: t('dash.stat.active'), value: String(userListings.length), color: "bg-white" },
+              { label: t('dash.stat.inProcess'), value: String(inProcessListings.length), color: "bg-purple-50" },
+              { label: t('dash.stat.totalSold'), value: String(soldListings.length), color: "bg-cream-100" },
+              { label: t('dash.stat.watchlist'), value: String(watchlist.length), color: "bg-white" },
+              { label: t('dash.stat.purchased'), value: String(purchases.length), color: "bg-purple-50" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -227,7 +229,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex gap-2">
                           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
-                            Active
+                            {t('status.active')}
                           </span>
                         </div>
                       </div>
@@ -238,7 +240,7 @@ export default function Dashboard() {
                             size="sm"
                             className="text-xs border-purple-200"
                           >
-                            View
+                            {t('dash.view')}
                           </Button>
                         </Link>
                       </div>
@@ -250,14 +252,14 @@ export default function Dashboard() {
                         <Package className="w-10 h-10 text-purple-400" />
                       </div>
                       <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                        No active listings
+                        {t('dash.empty.listed')}
                       </h3>
                       <p className="text-purple-600/70 mb-4">
-                        Start selling by listing your first item.
+                        {t('dash.empty.listedSub')}
                       </p>
                       <Link href="/post">
                         <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6">
-                          <Plus className="w-4 h-4 mr-2" /> List an Item
+                          <Plus className="w-4 h-4 mr-2" /> {t('dash.empty.listItem')}
                         </Button>
                       </Link>
                     </div>
@@ -286,7 +288,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex gap-2">
                             <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
-                              In Process
+                              {t('status.inProcess')}
                             </span>
                           </div>
                         </div>
@@ -298,10 +300,10 @@ export default function Dashboard() {
                         <Clock className="w-10 h-10 text-purple-400" />
                       </div>
                       <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                        No items in process
+                        {t('dash.empty.process')}
                       </h3>
                       <p className="text-purple-600/70">
-                        When a buyer requests an item, it will appear here.
+                        {t('dash.empty.processSub')}
                       </p>
                     </div>
                   ))}
@@ -329,7 +331,7 @@ export default function Dashboard() {
                           </div>
                           <div className="flex gap-2">
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
-                              Sold
+                            {t('status.sold')}
                             </span>
                           </div>
                         </div>
@@ -341,10 +343,10 @@ export default function Dashboard() {
                         <CheckCircle2 className="w-10 h-10 text-purple-400" />
                       </div>
                       <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                        No items sold yet
+                        {t('dash.empty.sold')}
                       </h3>
                       <p className="text-purple-600/70">
-                        List your first item to get started.
+                        {t('dash.empty.soldSub')}
                       </p>
                     </div>
                   ))}
@@ -372,7 +374,7 @@ export default function Dashboard() {
                         </div>
                         <div className="text-xs text-purple-400 flex items-center">
                           <Heart className="w-3 h-3 mr-1 fill-purple-400" />{" "}
-                          Saved
+                          {t('status.saved')}
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
@@ -381,7 +383,7 @@ export default function Dashboard() {
                             size="sm"
                             className="bg-purple-100 text-purple-900 hover:bg-purple-200"
                           >
-                            View
+                            {t('dash.view')}
                           </Button>
                         </Link>
                       </div>
@@ -393,14 +395,14 @@ export default function Dashboard() {
                         <Heart className="w-10 h-10 text-purple-400" />
                       </div>
                       <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                        Watchlist is empty
+                        {t('dash.empty.watchlist')}
                       </h3>
                       <p className="text-purple-600/70 mb-4">
-                        Browse items and save your favorites.
+                        {t('dash.empty.watchlistSub')}
                       </p>
                       <Link href="/browse">
                         <Button variant="outline" className="rounded-full px-6 border-purple-200">
-                          Browse Items
+                          {t('dash.browseItems')}
                         </Button>
                       </Link>
                     </div>
@@ -411,7 +413,7 @@ export default function Dashboard() {
                     <>
                       {purchasedInProcess.length > 0 && (
                         <div className="space-y-4">
-                          <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider">In Process</h3>
+                          <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider">{t('dash.purchased.inProcess')}</h3>
                           {purchasedInProcess.map((listing) => (
                             <div
                               key={listing.id}
@@ -424,12 +426,12 @@ export default function Dashboard() {
                                 <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
                                 <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
                                 <div className="flex gap-2">
-                                  <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">Waiting for Admin</span>
+                                  <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">{t('status.waitingAdmin')}</span>
                                 </div>
                               </div>
                               <div className="hidden sm:flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
                                 <Link href={`/item/${listing.id}`}>
-                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">View</Button>
+                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">{t('dash.view')}</Button>
                                 </Link>
                               </div>
                             </div>
@@ -438,7 +440,7 @@ export default function Dashboard() {
                       )}
                       {purchasedCompleted.length > 0 && (
                         <div className="space-y-4">
-                          <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider">Completed</h3>
+                          <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider">{t('dash.purchased.completed')}</h3>
                           {purchasedCompleted.map((listing) => (
                             <div
                               key={listing.id}
@@ -451,12 +453,12 @@ export default function Dashboard() {
                                 <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
                                 <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
                                 <div className="flex gap-2">
-                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">Purchased</span>
+                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">{t('status.purchased')}</span>
                                 </div>
                               </div>
                               <div className="hidden sm:flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
                                 <Link href={`/item/${listing.id}`}>
-                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">View</Button>
+                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">{t('dash.view')}</Button>
                                 </Link>
                               </div>
                             </div>
@@ -470,14 +472,14 @@ export default function Dashboard() {
                         <ShoppingBag className="w-10 h-10 text-purple-400" />
                       </div>
                       <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
-                        No purchases yet
+                        {t('dash.empty.purchased')}
                       </h3>
                       <p className="text-purple-600/70 mb-4">
-                        When you request an item and the deal is confirmed, it will appear here.
+                        {t('dash.empty.purchasedSub')}
                       </p>
                       <Link href="/browse">
                         <Button variant="outline" className="rounded-full px-6 border-purple-200">
-                          Browse Items
+                          {t('dash.browseItems')}
                         </Button>
                       </Link>
                     </div>

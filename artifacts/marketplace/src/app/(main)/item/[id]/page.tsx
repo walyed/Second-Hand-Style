@@ -17,12 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import NotFound from "@/app/not-found";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ItemDetail() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
   const { profile, user } = useAuth();
+  const { t } = useTranslation();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -155,12 +157,10 @@ export default function ItemDetail() {
               <ShieldCheck className="w-8 h-8 text-purple-500 shrink-0" />
               <div>
                 <h4 className="font-bold text-purple-900 mb-1">
-                  Marketplace Guarantee
+                  {t('item.guarantee.title')}
                 </h4>
                 <p className="text-sm text-purple-700/80">
-                  Every transaction is monitored by our admin team to ensure
-                  safety and authenticity. A small commission applies only upon
-                  successful transfer.
+                  {t('item.guarantee.desc')}
                 </p>
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function ItemDetail() {
               <div className="glass rounded-3xl p-6 md:p-8 shadow-xl">
                 <div className="mb-6">
                   <div className="text-sm text-purple-400 mb-1">
-                    Original Price
+                    {t('item.originalPrice')}
                   </div>
                   <motion.div
                     initial={{ clipPath: "inset(0 100% 0 0)" }}
@@ -204,7 +204,7 @@ export default function ItemDetail() {
                   </motion.div>
 
                   <div className="text-sm text-purple-600 mt-4 mb-1 font-medium">
-                    Selling for
+                    {t('item.sellingFor')}
                   </div>
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -218,7 +218,7 @@ export default function ItemDetail() {
 
                 <div className="border-t border-purple-100 pt-6 mb-6">
                   <div className="text-sm font-medium text-purple-400 mb-3 uppercase tracking-wider">
-                    Location
+                    {t('item.location')}
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-purple-600 shadow-inner">
@@ -229,7 +229,7 @@ export default function ItemDetail() {
                         {listing.city}
                       </div>
                       <div className="text-sm text-purple-500">
-                        Israel
+                        {t('item.israel')}
                       </div>
                     </div>
                   </div>
@@ -242,18 +242,18 @@ export default function ItemDetail() {
                     disabled={listing.status !== "active"}
                     onClick={() => {
                       if (!profile) {
-                        toast.error("Please log in to contact the seller");
+                        toast.error(t('item.loginRequired'));
                         router.push("/login");
                         return;
                       }
                       if (listing.seller.id === profile.id) {
-                        toast.error("This is your own listing");
+                        toast.error(t('item.ownListing'));
                         return;
                       }
                       setShowContactModal(true);
                     }}
                   >
-                    {listing.status === "active" ? "Contact Seller" : listing.status === "in_process" ? "Deal In Progress" : "Not Available"}
+                    {listing.status === "active" ? t('item.contactSeller') : listing.status === "in_process" ? t('item.dealInProgress') : t('item.notAvailable')}
                   </Button>
                 </motion.div>
               </div>
@@ -277,13 +277,11 @@ export default function ItemDetail() {
             </motion.div>
 
             <h2 className="font-serif text-3xl font-bold text-purple-900 mb-4">
-              Connect Securely
+              {t('item.connectSecurely')}
             </h2>
 
             <p className="text-purple-700/80 mb-8 text-lg">
-              Our admin team will connect you with the seller within 24
-              hours. A small fixed commission applies to ensure a safe
-              transaction.
+              {t('item.connectDesc')}
             </p>
 
             <div className="flex gap-4 w-full">
@@ -293,7 +291,7 @@ export default function ItemDetail() {
                 onClick={() => setShowContactModal(false)}
                 disabled={requestLoading}
               >
-                Cancel
+                {t('item.cancel')}
               </Button>
               <Button
                 className="flex-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white"
@@ -304,7 +302,7 @@ export default function ItemDetail() {
                     await api.requestDeal(listing.id);
                     setShowContactModal(false);
                     setListing({ ...listing, status: "in_process" });
-                    toast.success("Request sent! The admin team will connect you with the seller.");
+                    toast.success(t('item.requestSent'));
                   } catch (err: any) {
                     toast.error(err.message || "Failed to send request");
                   } finally {
@@ -312,7 +310,7 @@ export default function ItemDetail() {
                   }
                 }}
               >
-                {requestLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Request"}
+                {requestLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('item.confirmRequest')}
               </Button>
             </div>
           </div>

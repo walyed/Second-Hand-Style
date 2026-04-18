@@ -12,17 +12,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { api, type Listing } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
+import { useTranslation } from "@/lib/i18n";
 
 const categories = [
-  { name: "Furniture", icon: "🛋️", delay: 0.1 },
-  { name: "Electronics", icon: "📱", delay: 0.2 },
-  { name: "Kitchen", icon: "🍳", delay: 0.3 },
-  { name: "Clothing", icon: "👗", delay: 0.4 },
-  { name: "Other", icon: "📦", delay: 0.5 },
+  { name: "Furniture" as const, icon: "🛋️", delay: 0.1 },
+  { name: "Electronics" as const, icon: "📱", delay: 0.2 },
+  { name: "Kitchen" as const, icon: "🍳", delay: 0.3 },
+  { name: "Clothing" as const, icon: "👗", delay: 0.4 },
+  { name: "Other" as const, icon: "📦", delay: 0.5 },
 ];
 
 export default function Home() {
   const [featuredItems, setFeaturedItems] = useState<Listing[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     api.getListings({ limit: 4, sort: "newest" }).then(setFeaturedItems).catch(() => {});
@@ -53,11 +55,11 @@ export default function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 tracking-tight">
-              Buy Less. <br className="md:hidden" /> Choose{" "}
-              <span className="animate-shimmer">Well.</span>
+              {t('home.hero.title1')} <br className="md:hidden" /> {t('home.hero.title2')}{" "}
+              <span className="animate-shimmer">{t('home.hero.title3')}</span>
             </h1>
             <p className="text-xl md:text-2xl text-purple-700/80 max-w-2xl mx-auto mb-10 font-sans font-light">
-              Curated premium second-hand goods. Reimagined for modern living.
+              {t('home.hero.subtitle')}
             </p>
           </motion.div>
 
@@ -72,7 +74,7 @@ export default function Home() {
                 size="lg"
                 className="w-full sm:w-auto text-lg rounded-full px-8 py-6 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 shadow-lg shadow-purple-500/30 group"
               >
-                Browse Items{" "}
+                {t('home.browseItems')}{" "}
                 <MoveRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -82,7 +84,7 @@ export default function Home() {
                 size="lg"
                 className="w-full sm:w-auto text-lg rounded-full px-8 py-6 border-2 border-purple-200 hover:bg-purple-100 hover:border-purple-300 text-purple-900 glass"
               >
-                Start Selling <ShoppingBag className="ml-2 w-5 h-5" />
+                {t('home.startSelling')} <ShoppingBag className="ml-2 w-5 h-5" />
               </Button>
             </Link>
           </motion.div>
@@ -101,7 +103,7 @@ export default function Home() {
                     className="glass px-6 py-3 rounded-full flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md transition-shadow font-medium"
                   >
                     <span className="text-xl">{cat.icon}</span>
-                    <span>{cat.name}</span>
+                    <span>{t(`cat.${cat.name}`)}</span>
                   </motion.div>
                 </Link>
               </motion.div>
@@ -123,17 +125,17 @@ export default function Home() {
         <div className="flex items-end justify-between mb-12">
           <div>
             <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 flex items-center gap-3">
-              Featured Pieces <Sparkles className="w-8 h-8 text-gold" />
+              {t('home.featured.title')} <Sparkles className="w-8 h-8 text-gold" />
             </h2>
             <p className="text-purple-600/80 text-lg">
-              Hand-picked items that deserve a second life.
+              {t('home.featured.subtitle')}
             </p>
           </div>
           <Link
             href="/browse"
             className="hidden md:flex items-center gap-2 text-purple-600 font-medium hover:text-purple-800 transition-colors group"
           >
-            View all{" "}
+            {t('home.viewAll')}{" "}
             <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -158,7 +160,7 @@ export default function Home() {
               variant="outline"
               className="w-full rounded-full border-purple-200 text-purple-900"
             >
-              View all listings
+              {t('home.viewAllListings')}
             </Button>
           </Link>
         </div>
@@ -187,14 +189,13 @@ export default function Home() {
               transition={{ duration: 0.6 }}
             >
               <span className="inline-block px-4 py-1.5 rounded-full bg-[#C9A84C]/20 text-[#C9A84C] text-sm font-medium tracking-wider uppercase mb-6 border border-[#C9A84C]/30">
-                How It Works
+                {t('home.how.badge')}
               </span>
               <h2 className="font-serif text-4xl md:text-6xl font-bold text-white mb-5">
-                The Marketplace <span className="text-[#C9A84C]">Way</span>
+                {t('home.how.title')} <span className="text-[#C9A84C]">{t('home.how.titleAccent')}</span>
               </h2>
               <p className="text-[#DCC4F8] text-lg md:text-xl max-w-2xl mx-auto">
-                Three simple steps to a simpler, more intentional way to buy and
-                sell.
+                {t('home.how.subtitle')}
               </p>
             </motion.div>
           </div>
@@ -213,8 +214,8 @@ export default function Home() {
             {[
               {
                 step: "01",
-                title: "Browse & Discover",
-                desc: "Explore curated, high-quality second-hand items near you. Filter by category, condition, and location to find exactly what you need.",
+                title: t('home.step1.title'),
+                desc: t('home.step1.desc'),
                 icon: (
                   <svg
                     viewBox="0 0 24 24"
@@ -232,8 +233,8 @@ export default function Home() {
               },
               {
                 step: "02",
-                title: "Connect Securely",
-                desc: "Our admin team personally facilitates every connection between buyer and seller — ensuring trust, safety, and a seamless experience.",
+                title: t('home.step2.title'),
+                desc: t('home.step2.desc'),
                 icon: (
                   <svg
                     viewBox="0 0 24 24"
@@ -255,8 +256,8 @@ export default function Home() {
               },
               {
                 step: "03",
-                title: "Collect & Enjoy",
-                desc: "Pick up your treasure and give it a second life. Sustainable shopping that feels great — for you and the planet.",
+                title: t('home.step3.title'),
+                desc: t('home.step3.desc'),
                 icon: (
                   <svg
                     viewBox="0 0 24 24"
@@ -334,21 +335,21 @@ export default function Home() {
             {[
               {
                 value: "2,400+",
-                label: "Items Listed",
+                label: t('home.stat.itemsListed'),
                 color: "text-[#C9A84C]",
                 borderColor: "border-[#C9A84C]/20",
                 bgGlow: "bg-[#C9A84C]/5",
               },
               {
                 value: "1,800+",
-                label: "Happy Buyers",
+                label: t('home.stat.happyBuyers'),
                 color: "text-[#7B3FB5]",
                 borderColor: "border-[#7B3FB5]/20",
                 bgGlow: "bg-[#7B3FB5]/5",
               },
               {
                 value: "98%",
-                label: "Satisfaction Rate",
+                label: t('home.stat.satisfaction'),
                 color: "text-[#1E0A3C]",
                 borderColor: "border-[#1E0A3C]/10",
                 bgGlow: "bg-[#1E0A3C]/5",

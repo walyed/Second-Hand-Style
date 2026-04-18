@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, ShieldCheck, Heart, Info, Star, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, ShieldCheck, Heart, Info, Loader2 } from "lucide-react";
 import { api, type Listing } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import NotFound from "@/app/not-found";
@@ -216,19 +218,18 @@ export default function ItemDetail() {
 
                 <div className="border-t border-purple-100 pt-6 mb-6">
                   <div className="text-sm font-medium text-purple-400 mb-3 uppercase tracking-wider">
-                    Seller
+                    Location
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-inner">
-                      {listing.seller.name.charAt(0)}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-purple-600 shadow-inner">
+                      <MapPin className="w-6 h-6" />
                     </div>
                     <div>
                       <div className="font-bold text-purple-900 text-lg">
-                        {listing.seller.name}
+                        {listing.city}
                       </div>
-                      <div className="flex items-center text-gold text-sm font-medium">
-                        <Star className="w-4 h-4 fill-current mr-1" />{" "}
-                        Rating
+                      <div className="text-sm text-purple-500">
+                        Israel
                       </div>
                     </div>
                   </div>
@@ -263,6 +264,8 @@ export default function ItemDetail() {
 
       <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
         <DialogContent className="sm:max-w-md bg-cream-50 border-purple-200 p-0 overflow-hidden rounded-3xl">
+          <DialogTitle className="sr-only">Connect Securely</DialogTitle>
+          <DialogDescription className="sr-only">Request a deal with the seller through our admin team.</DialogDescription>
           <div className="p-8 text-center flex flex-col items-center">
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
@@ -278,8 +281,7 @@ export default function ItemDetail() {
             </h2>
 
             <p className="text-purple-700/80 mb-8 text-lg">
-              Our admin team will connect you with{" "}
-              <span className="font-bold">{listing.seller.name}</span> within 24
+              Our admin team will connect you with the seller within 24
               hours. A small fixed commission applies to ensure a safe
               transaction.
             </p>

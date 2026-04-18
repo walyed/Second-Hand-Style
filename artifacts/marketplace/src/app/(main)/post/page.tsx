@@ -47,6 +47,17 @@ export default function PostItem() {
   const handleNext = () => setStep((s) => Math.min(s + 1, 3));
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
+  // Auto-detect "Special Deal" when sell price < 20% of original price
+  React.useEffect(() => {
+    const op = Number(formData.originalPrice);
+    const sp = Number(formData.sellPrice);
+    if (op > 0 && sp > 0 && sp < op * 0.2) {
+      if (formData.condition !== "Special Deal") {
+        setFormData((prev) => ({ ...prev, condition: "Special Deal" }));
+      }
+    }
+  }, [formData.originalPrice, formData.sellPrice]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) {
@@ -380,7 +391,7 @@ export default function PostItem() {
                       Condition
                     </Label>
                     <div className="grid grid-cols-2 gap-3">
-                      {["New", "Like New", "Used", "Needs Love"].map(
+                      {["New", "Used", "Refurbished", "Special Deal"].map(
                         (cond) => (
                           <button
                             key={cond}

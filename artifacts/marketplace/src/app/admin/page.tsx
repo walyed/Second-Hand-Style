@@ -10,6 +10,7 @@ import {
   Package,
   Activity,
   AlertCircle,
+  CheckCircle2,
   Search,
   LayoutDashboard,
 } from "lucide-react";
@@ -61,6 +62,7 @@ export default function Admin() {
   if (!profile?.isAdmin) return null;
 
   const inProcessListings = allListings.filter((l: any) => l.status === "in_process");
+  const soldListings = allListings.filter((l: any) => l.status === "sold");
 
   const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -106,7 +108,7 @@ export default function Admin() {
       <main className="flex-1 overflow-y-auto p-6 md:p-10 bg-cream-50 text-purple-900">
         <div className="max-w-6xl mx-auto space-y-10">
           <AnimatePresence mode="wait">
-            {activeTab === "dashboard" && <DashboardView inProcessListings={inProcessListings} stats={stats} recentUsers={allUsers.slice(0, 5)} onStatusChange={loadData} />}
+            {activeTab === "dashboard" && <DashboardView inProcessListings={inProcessListings} soldListings={soldListings} stats={stats} recentUsers={allUsers.slice(0, 5)} onStatusChange={loadData} />}
             {activeTab === "items" && <ItemsView listings={allListings} onStatusChange={loadData} />}
             {activeTab === "users" && <UsersView users={allUsers} />}
           </AnimatePresence>
@@ -117,10 +119,10 @@ export default function Admin() {
 }
 
 /* ─── Dashboard Tab ─── */
-function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }: { inProcessListings: any[]; stats: any; recentUsers: any[]; onStatusChange: () => void }) {
+function DashboardView({ inProcessListings, soldListings, stats, recentUsers, onStatusChange }: { inProcessListings: any[]; soldListings: any[]; stats: any; recentUsers: any[]; onStatusChange: () => void }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const handleConfirmDeal = async (listingId: string) => {
+  const handleMarkSold = async (listingId: string) => {
     setActionLoading(listingId);
     try {
       await api.updateListingStatus(listingId, "sold");
@@ -130,6 +132,15 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
   };
 
   const handleRejectDeal = async (listingId: string) => {
+    setActionLoading(listingId);
+    try {
+      await api.updateListingStatus(listingId, "active");
+      onStatusChange();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
+
+  const handleRestore = async (listingId: string) => {
     setActionLoading(listingId);
     try {
       await api.updateListingStatus(listingId, "active");
@@ -160,12 +171,13 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           { label: "Total Items", value: String(stats?.total ?? 0), icon: <Package className="w-5 h-5 text-blue-600" /> },
           { label: "Active Listings", value: String(stats?.active ?? 0), icon: <Activity className="w-5 h-5 text-green-600" /> },
-          { label: "Total Users", value: String(stats?.totalUsers ?? 0), icon: <Users className="w-5 h-5 text-purple-600" /> },
           { label: "Deals in Process", value: String(stats?.inProcess ?? 0), icon: <AlertCircle className="w-5 h-5 text-amber-600" /> },
+          { label: "Sold", value: String(stats?.sold ?? 0), icon: <CheckCircle2 className="w-5 h-5 text-emerald-600" /> },
+          { label: "Total Users", value: String(stats?.totalUsers ?? 0), icon: <Users className="w-5 h-5 text-purple-600" /> },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -229,7 +241,10 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
                         <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700">
                           {(item.sellerName || "?").charAt(0)}
                         </div>
-                        <span>{(item.sellerName || "Unknown").split(" ")[0]}</span>
+                        <div>
+                          <div>{item.sellerName || "Unknown"}</div>
+                          {item.sellerPhone && <div className="text-xs text-purple-400">{item.sellerPhone}</div>}
+                        </div>
                       </div>
                     </td>
                     <td className="p-4">
@@ -239,11 +254,11 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
                             <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
                               {item.buyerName.charAt(0)}
                             </div>
-                            <span>{item.buyerName}</span>
+                            <div>
+                              <div>{item.buyerName}</div>
+                              {item.buyerPhone && <div className="text-xs text-purple-400">{item.buyerPhone}</div>}
+                            </div>
                           </div>
-                          {item.buyerPhone && (
-                            <div className="text-xs text-purple-400 mt-1 ml-8">{item.buyerPhone}</div>
-                          )}
                         </div>
                       ) : (
                         <span className="text-purple-300 text-xs">No buyer info</span>
@@ -256,10 +271,10 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
                       <Button
                         size="sm"
                         disabled={actionLoading === item.id}
-                        onClick={() => handleConfirmDeal(item.id)}
+                        onClick={() => handleMarkSold(item.id)}
                         className="bg-green-600 hover:bg-green-700 text-white rounded-full"
                       >
-                        {actionLoading === item.id ? "..." : "Confirm"}
+                        {actionLoading === item.id ? "..." : "Mark Sold"}
                       </Button>
                       <Button
                         size="sm"
@@ -309,6 +324,96 @@ function DashboardView({ inProcessListings, stats, recentUsers, onStatusChange }
               ))
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Sold Items Section */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold font-serif flex items-center gap-2">
+          Sold Items{" "}
+          <Badge className="bg-green-100 text-green-700 border-green-300">
+            {soldListings.length} Sold
+          </Badge>
+        </h2>
+
+        <div className="bg-white border border-purple-100 rounded-2xl overflow-hidden">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-purple-50 border-b border-purple-100 text-purple-500">
+              <tr>
+                <th className="p-4 font-medium">Item</th>
+                <th className="p-4 font-medium">Seller</th>
+                <th className="p-4 font-medium">Buyer</th>
+                <th className="p-4 font-medium">Amount</th>
+                <th className="p-4 font-medium text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {soldListings.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-purple-400">
+                    No sold items yet
+                  </td>
+                </tr>
+              ) : (
+                soldListings.map((item, i) => (
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="border-b border-purple-50 hover:bg-purple-50/50 transition-colors"
+                  >
+                    <td className="p-4">
+                      <div className="font-bold text-purple-900">{item.title}</div>
+                      <div className="text-purple-400 text-xs">{item.category}</div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-700">
+                          {(item.sellerName || "?").charAt(0)}
+                        </div>
+                        <div>
+                          <div>{item.sellerName || "Unknown"}</div>
+                          {item.sellerPhone && <div className="text-xs text-purple-400">{item.sellerPhone}</div>}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      {item.buyerName ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+                              {item.buyerName.charAt(0)}
+                            </div>
+                            <div>
+                              <div>{item.buyerName}</div>
+                              {item.buyerPhone && <div className="text-xs text-purple-400">{item.buyerPhone}</div>}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-purple-300 text-xs">N/A</span>
+                      )}
+                    </td>
+                    <td className="p-4 font-mono font-bold text-green-700">
+                      ₪{item.sellPrice}
+                    </td>
+                    <td className="p-4 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading === item.id}
+                        onClick={() => handleRestore(item.id)}
+                        className="border-purple-300 text-purple-600 hover:bg-purple-50 rounded-full"
+                      >
+                        {actionLoading === item.id ? "..." : "Restore to Active"}
+                      </Button>
+                    </td>
+                  </motion.tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </motion.div>

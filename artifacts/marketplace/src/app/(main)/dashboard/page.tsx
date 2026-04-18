@@ -10,6 +10,7 @@ import {
   Heart,
   Clock,
   CheckCircle2,
+  ShoppingBag,
   User,
   Settings,
   LogOut,
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("listed");
   const [myListings, setMyListings] = useState<Listing[]>([]);
   const [watchlist, setWatchlist] = useState<Listing[]>([]);
+  const [purchases, setPurchases] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,9 +38,11 @@ export default function Dashboard() {
     Promise.all([
         api.getMyListings().catch(() => []),
         api.getWatchlist().catch(() => []),
-      ]).then(([listings, wl]) => {
+        api.getMyPurchases().catch(() => []),
+      ]).then(([listings, wl, purch]) => {
         setMyListings(listings);
         setWatchlist(wl);
+        setPurchases(purch);
         setLoading(false);
       });
   }, [profile, authLoading, router]);
@@ -57,6 +61,8 @@ export default function Dashboard() {
   const userListings = myListings.filter((l) => l.status === "active");
   const inProcessListings = myListings.filter((l) => l.status === "in_process");
   const soldListings = myListings.filter((l) => l.status === "sold");
+  const purchasedInProcess = purchases.filter((l) => l.status === "in_process");
+  const purchasedCompleted = purchases.filter((l) => l.status === "sold");
 
   const tabs = [
     {
@@ -78,6 +84,11 @@ export default function Dashboard() {
       id: "watchlist",
       label: "Watchlist",
       icon: <Heart className="w-4 h-4" />,
+    },
+    {
+      id: "purchased",
+      label: "Purchased",
+      icon: <ShoppingBag className="w-4 h-4" />,
     },
   ];
 
@@ -140,16 +151,13 @@ export default function Dashboard() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
             {[
               { label: "Active Listings", value: String(userListings.length), color: "bg-white" },
               { label: "In Process", value: String(inProcessListings.length), color: "bg-purple-50" },
               { label: "Total Sold", value: String(soldListings.length), color: "bg-cream-100" },
-              {
-                label: "Watchlist",
-                value: String(watchlist.length),
-                color: "bg-white",
-              },
+              { label: "Watchlist", value: String(watchlist.length), color: "bg-white" },
+              { label: "Purchased", value: String(purchases.length), color: "bg-purple-50" },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -389,6 +397,83 @@ export default function Dashboard() {
                       </h3>
                       <p className="text-purple-600/70 mb-4">
                         Browse items and save your favorites.
+                      </p>
+                      <Link href="/browse">
+                        <Button variant="outline" className="rounded-full px-6 border-purple-200">
+                          Browse Items
+                        </Button>
+                      </Link>
+                    </div>
+                  ))}
+
+                {activeTab === "purchased" &&
+                  (purchases.length > 0 ? (
+                    <>
+                      {purchasedInProcess.length > 0 && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider">In Process</h3>
+                          {purchasedInProcess.map((listing) => (
+                            <div
+                              key={listing.id}
+                              className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
+                            >
+                              <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                                <img src={listing.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="" />
+                              </div>
+                              <div className="flex-1 flex flex-col justify-center">
+                                <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
+                                <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                                <div className="flex gap-2">
+                                  <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">Waiting for Admin</span>
+                                </div>
+                              </div>
+                              <div className="hidden sm:flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
+                                <Link href={`/item/${listing.id}`}>
+                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">View</Button>
+                                </Link>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {purchasedCompleted.length > 0 && (
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-bold text-green-700 uppercase tracking-wider">Completed</h3>
+                          {purchasedCompleted.map((listing) => (
+                            <div
+                              key={listing.id}
+                              className="flex bg-white rounded-2xl p-4 shadow-sm border border-purple-100 hover:shadow-md transition-shadow group"
+                            >
+                              <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 mr-4">
+                                <img src={listing.images[0]} className="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="" />
+                              </div>
+                              <div className="flex-1 flex flex-col justify-center">
+                                <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
+                                <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                                <div className="flex gap-2">
+                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">Purchased</span>
+                                </div>
+                              </div>
+                              <div className="hidden sm:flex flex-col gap-2 justify-center pl-4 border-l border-purple-50 ml-4">
+                                <Link href={`/item/${listing.id}`}>
+                                  <Button variant="outline" size="sm" className="text-xs border-purple-200">View</Button>
+                                </Link>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-16 bg-white rounded-3xl border border-purple-100 border-dashed">
+                      <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ShoppingBag className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <h3 className="font-serif text-xl font-bold text-purple-900 mb-2">
+                        No purchases yet
+                      </h3>
+                      <p className="text-purple-600/70 mb-4">
+                        When you request an item and the deal is confirmed, it will appear here.
                       </p>
                       <Link href="/browse">
                         <Button variant="outline" className="rounded-full px-6 border-purple-200">

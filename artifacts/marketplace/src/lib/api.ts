@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 
 export type Category = "Furniture" | "Electronics" | "Kitchen" | "Clothing" | "Other";
-export type Condition = "New" | "Like New" | "Used" | "Needs Love" | "Refurbished" | "Special Deal";
+export type Condition = "New" | "Used" | "Refurbished" | "Special Deal";
 export type City = "Tel Aviv" | "Jerusalem" | "Haifa" | "Eilat";
 
 export interface Seller {
@@ -341,30 +341,36 @@ export const api = {
     return data;
   },
 
+  // ─── My Purchases (items where I am the buyer) ───────────
+  getMyPurchases: async (): Promise<Listing[]> => {
+    const userId = await getMyUserId();
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from("listings")
+      .select("*, users!listings_seller_id_fkey(id, full_name, avatar_url)")
+      .eq("buyer_id", userId)
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((row: any) => toListing(row));
+  },
+
   // ─── Deal Requests ───────────────────────────────────────
   requestDeal: async (listingId: string) => {
     const userId = await getMyUserId();
     if (!userId) throw new Error("Not authenticated");
 
-    const { data, error } = await supabase
-      .from("listings")
-      .update({
-        status: "in_process",
-        buyer_id: userId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", listingId)
-      .eq("status", "active") // Only allow requesting active listings
-      .select()
-      .single();
-    if (error) throw error;
+    const { data, error } = await supabase.rpc("request_deal", {
+      p_listing_id: listingId,
+    });
+    if (error) throw new Error(error.message);
     return data;
   },
 
   getAdminListings: async () => {
     const { data, error } = await supabase
       .from("listings")
-      .select("*, users!listings_seller_id_fkey(id, full_name), buyer:users!listings_buyer_id_fkey(id, full_name, phone)")
+      .select("*, users!listings_seller_id_fkey(id, full_name, phone), buyer:users!listings_buyer_id_fkey(id, full_name, phone)")
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (data ?? []).map((row: any) => ({
@@ -373,6 +379,7 @@ export const api = {
       sellPrice: row.sell_price,
       createdAt: row.created_at,
       sellerName: row.users?.full_name ?? "Unknown",
+      sellerPhone: row.users?.phone ?? null,
       buyerName: row.buyer?.full_name ?? null,
       buyerPhone: row.buyer?.phone ?? null,
     }));

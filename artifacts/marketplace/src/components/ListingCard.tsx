@@ -10,13 +10,18 @@ import { useAuth } from '@/lib/auth-context';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+import { toast } from 'sonner';
+
 export function ListingCard({ listing }: { listing: Listing }) {
   const [isWatchlisted, setIsWatchlisted] = React.useState(listing.isWatchlisted);
   const { user } = useAuth();
 
   const toggleWatchlist = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      toast.error("Please log in to save items to your watchlist");
+      return;
+    }
     const newVal = !isWatchlisted;
     setIsWatchlisted(newVal);
     try {
@@ -86,10 +91,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <div>
             <div className="text-sm text-purple-400 line-through">₪{listing.originalPrice.toLocaleString()}</div>
             <div className="text-2xl font-bold text-purple-600">₪{listing.sellPrice.toLocaleString()}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-purple-400">Seller</div>
-            <div className="text-sm font-medium text-purple-900 truncate max-w-[100px]">{listing.seller.name.split(' ')[0]}</div>
           </div>
         </div>
       </div>

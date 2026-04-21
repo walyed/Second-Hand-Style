@@ -44,23 +44,22 @@ export default function PostItem() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleNext = () => setStep((s) => Math.min(s + 1, 3));
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
-  // Auto-detect "Special Deal" when sell price is 20% or more off original price
+  // Auto-detect "Special Deal": sell price ≤ 20% of original price (≥80% discount).
+  // Only the condition label is locked — sell price stays fully editable.
   React.useEffect(() => {
     const op = Number(formData.originalPrice);
     const sp = Number(formData.sellPrice);
-    if (op <= 0) return;
-    const specialPrice = Math.round(op * 0.8);
-    if (sp > 0 && sp <= specialPrice) {
-      setFormData((prev) => {
-        if (prev.condition === "Special Deal" && Number(prev.sellPrice) === specialPrice) return prev;
-        return { ...prev, condition: "Special Deal", sellPrice: String(specialPrice) };
-      });
-    } else if (formData.condition === "Special Deal") {
+    if (op <= 0 || sp <= 0) return;
+    const isSpecialDeal = sp <= op * 0.20;
+    if (isSpecialDeal && formData.condition !== "Special Deal") {
+      setFormData((prev) => ({ ...prev, condition: "Special Deal" }));
+    } else if (!isSpecialDeal && formData.condition === "Special Deal") {
       setFormData((prev) => ({ ...prev, condition: "" }));
     }
   }, [formData.originalPrice, formData.sellPrice]);
@@ -70,6 +69,11 @@ export default function PostItem() {
     if (!profile) {
       toast.error(t('post.loginRequired'));
       router.push("/login");
+      return;
+    }
+    const validCities = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
+    if (!formData.city || !validCities.includes(formData.city)) {
+      toast.error("Please select a valid city from the list");
       return;
     }
     setIsSubmitting(true);
@@ -109,27 +113,38 @@ export default function PostItem() {
       return;
     }
 
+    setIsUploadingImages(true);
+    let uploadedCount = 0;
+
     for (const file of imageFiles) {
       const ext = file.name.split(".").pop() || "jpg";
       const path = `listings/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("listing-images")
-        .upload(path, file, { contentType: file.type });
-
-      if (error) {
-        // If bucket doesn't exist or upload fails, fall back to a local preview URL
-        const url = URL.createObjectURL(file);
-        setFormData((prev) => ({ ...prev, images: [...prev.images, url] }));
-      } else {
-        const { data: urlData } = supabase.storage
+      try {
+        const { error } = await supabase.storage
           .from("listing-images")
-          .getPublicUrl(path);
-        setFormData((prev) => ({
-          ...prev,
-          images: [...prev.images, urlData.publicUrl],
-        }));
+          .upload(path, file, { contentType: file.type });
+
+        if (error) {
+          // Fallback to local blob preview if bucket unavailable
+          const url = URL.createObjectURL(file);
+          setFormData((prev) => ({ ...prev, images: [...prev.images, url] }));
+        } else {
+          const { data: urlData } = supabase.storage
+            .from("listing-images")
+            .getPublicUrl(path);
+          setFormData((prev) => ({
+            ...prev,
+            images: [...prev.images, urlData.publicUrl],
+          }));
+        }
+        uploadedCount++;
+      } catch {
+        toast.error(`Failed to upload ${file.name}`);
       }
     }
+
+    setIsUploadingImages(false);
+    if (uploadedCount > 0) toast.success(`${uploadedCount} photo${uploadedCount > 1 ? "s" : ""} added`);
   };
 
   const handleImageDrop = (e: React.DragEvent) => {
@@ -260,8 +275,9 @@ export default function PostItem() {
                       onDrop={handleImageDrop}
                       className={`border-2 border-dashed rounded-2xl p-10 text-center transition-colors cursor-pointer
                         ${isDragging ? "border-purple-500 bg-purple-50" : "border-purple-200 bg-cream-50 hover:bg-white"}
-                        ${formData.images.length > 0 ? "bg-white border-solid" : ""}`}
-                      onClick={() => fileInputRef.current?.click()}
+                        ${formData.images.length > 0 ? "bg-white border-solid" : ""}
+                        ${isUploadingImages ? "pointer-events-none opacity-80" : ""}`}
+                      onClick={() => !isUploadingImages && fileInputRef.current?.click()}
                     >
                       <input
                         ref={fileInputRef}
@@ -274,7 +290,13 @@ export default function PostItem() {
                           e.target.value = "";
                         }}
                       />
-                      {formData.images.length > 0 ? (
+                      {isUploadingImages ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
+                          <p className="font-bold text-purple-700">Uploading photos...</p>
+                          <p className="text-sm text-purple-500">Please wait</p>
+                        </div>
+                      ) : formData.images.length > 0 ? (
                         <div className="flex gap-4 overflow-x-auto">
                           {formData.images.map((img, i) => (
                             <div
@@ -455,13 +477,10 @@ export default function PostItem() {
                         id="sprice"
                         type="number"
                         value={formData.sellPrice}
-                        readOnly={formData.condition === "Special Deal"}
-                        onChange={(e) => {
-                          if (formData.condition !== "Special Deal") {
-                            setFormData({ ...formData, sellPrice: e.target.value });
-                          }
-                        }}
-                        className={`rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900 ${formData.condition === "Special Deal" ? "opacity-70 cursor-not-allowed" : ""}`}
+                        onChange={(e) =>
+                          setFormData({ ...formData, sellPrice: e.target.value })
+                        }
+                        className="rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900"
                       />
                     </div>
                   </div>
@@ -484,19 +503,21 @@ export default function PostItem() {
 
                   <div className="space-y-2">
                     <Label className="text-purple-900 font-bold">{t('post.cityLabel')}</Label>
-                    <select
-                      className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-purple-500 focus:border-purple-500 outline-none"
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
-                    >
-                      <option value="">{t('post.selectCity')}</option>
-                      <option value="Tel Aviv">{t('city.Tel Aviv')}</option>
-                      <option value="Jerusalem">{t('city.Jerusalem')}</option>
-                      <option value="Haifa">{t('city.Haifa')}</option>
-                      <option value="Eilat">{t('city.Eilat')}</option>
-                    </select>
+                    <div className="relative">
+                      <input
+                        list="post-city-options"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder={t('post.selectCity')}
+                        className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                      />
+                      <datalist id="post-city-options">
+                        <option value="Tel Aviv" />
+                        <option value="Jerusalem" />
+                        <option value="Haifa" />
+                        <option value="Eilat" />
+                      </datalist>
+                    </div>
                   </div>
 
                   <div className="mt-8 bg-purple-50 rounded-2xl p-6 border border-purple-100">
@@ -544,9 +565,14 @@ export default function PostItem() {
                 <Button
                   type="button"
                   onClick={handleNext}
-                  className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+                  disabled={isUploadingImages}
+                  className="rounded-full px-8 bg-purple-600 hover:bg-purple-700 text-white shadow-md disabled:opacity-50"
                 >
-                  {t('post.next')} <ArrowRight className="w-4 h-4 ml-2" />
+                  {isUploadingImages ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</>
+                  ) : (
+                    <>{t('post.next')} <ArrowRight className="w-4 h-4 ml-2" /></>
+                  )}
                 </Button>
               ) : (
                 <Button

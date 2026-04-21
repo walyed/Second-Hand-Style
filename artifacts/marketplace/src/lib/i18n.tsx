@@ -154,7 +154,7 @@ const translations = {
   "post.goToDashboard": { EN: "Go to Dashboard", "עברית": "עבור ללוח בקרה", "عربي": "الذهاب للوحة التحكم" },
   "post.viewListing": { EN: "View Listing", "עברית": "צפה במוצר", "عربي": "عرض المنتج" },
   "post.loginRequired": { EN: "Please log in to post an item", "עברית": "התחברו כדי לפרסם פריט", "عربي": "يرجى تسجيل الدخول لنشر منتج" },
-  "post.specialDealLocked": { EN: "Auto-detected · 20% off original price", "עברית": "זוהה אוטומטית · 20% הנחה ממחיר מקורי", "عربي": "تم الكشف تلقائياً · خصم 20% من السعر الأصلي" },
+  "post.specialDealLocked": { EN: "Auto-detected · selling at ≤20% of original price", "עברית": "זוהה אוטומטית · מחיר מכירה ≤20% מהמחיר המקורי", "عربي": "تم الكشف تلقائياً · سعر البيع ≤20% من السعر الأصلي" },
 
   // ──────────────── LOGIN PAGE ────────────────
   "login.welcome": { EN: "Welcome back.", "עברית": ".ברוכים השבים", "عربي": ".مرحباً بعودتك" },

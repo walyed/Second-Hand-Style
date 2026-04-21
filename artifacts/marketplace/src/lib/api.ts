@@ -79,8 +79,16 @@ export const api = {
       .select("*, users!listings_seller_id_fkey(id, full_name, avatar_url)")
       .eq("status", "active");
 
-    if (filters.category) query = query.eq("category", filters.category);
-    if (filters.condition) query = query.eq("condition", filters.condition);
+    if (filters.category) {
+      const cats = filters.category.split(",").map((s) => s.trim()).filter(Boolean);
+      if (cats.length === 1) query = query.eq("category", cats[0]);
+      else if (cats.length > 1) query = query.in("category", cats);
+    }
+    if (filters.condition) {
+      const conds = filters.condition.split(",").map((s) => s.trim()).filter(Boolean);
+      if (conds.length === 1) query = query.eq("condition", conds[0]);
+      else if (conds.length > 1) query = query.in("condition", conds);
+    }
     if (filters.city) query = query.eq("city", filters.city);
     if (filters.search) query = query.ilike("title", `%${filters.search}%`);
 
@@ -158,7 +166,7 @@ export const api = {
         description: input.description,
         category: input.category,
         condition: input.condition,
-        city: input.city,
+        city: input.city || undefined,
         original_price: input.originalPrice,
         sell_price: input.sellPrice,
         images: input.images,

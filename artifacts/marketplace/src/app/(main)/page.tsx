@@ -18,8 +18,7 @@ const categories = [
   { name: "Furniture" as const, icon: "🛋️", delay: 0.1 },
   { name: "Electronics" as const, icon: "📱", delay: 0.2 },
   { name: "Kitchen" as const, icon: "🍳", delay: 0.3 },
-  { name: "Clothing" as const, icon: "👗", delay: 0.4 },
-  { name: "Other" as const, icon: "📦", delay: 0.5 },
+  { name: "Other" as const, icon: "📦", delay: 0.4 },
 ];
 
 export default function Home() {

@@ -20,6 +20,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // Redirect when profile becomes available after login
   useEffect(() => {
@@ -30,20 +32,29 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setHasError(false);
+    setEmailError("");
+    setPasswordError("");
 
     const form = e.target as HTMLFormElement;
     const identifier = (form.elements.namedItem("identifier") as HTMLInputElement).value.trim();
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
+    let hasFieldError = false;
     if (!identifier) {
+      setEmailError(t('login.errorEmailRequired'));
+      hasFieldError = true;
+    }
+    if (!password) {
+      setPasswordError(t('login.errorPasswordRequired'));
+      hasFieldError = true;
+    }
+    if (hasFieldError) {
       setHasError(true);
-      setIsLoading(false);
-      toast.error(t('login.enterIdentifier'));
       return;
     }
 
+    setIsLoading(true);
     const { error } = await signIn(identifier, password);
 
     if (error) {
@@ -120,9 +131,10 @@ export default function Login() {
                   name="identifier"
                   type="text"
                   placeholder={t('login.identifierPlaceholder')}
-                  className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
-                  required
+                  className={`rounded-xl bg-cream-50 focus-visible:ring-purple-500 p-6 text-lg ${emailError ? "border-red-400 ring-1 ring-red-300" : "border-purple-200"}`}
+                  onChange={() => emailError && setEmailError("")}
                 />
+                {emailError && <p className="text-xs text-red-500">{emailError}</p>}
               </div>
 
               <div className="space-y-2">
@@ -145,8 +157,8 @@ export default function Login() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    className="rounded-xl bg-cream-50 border-purple-200 focus-visible:ring-purple-500 p-6 text-lg"
-                    required
+                    className={`rounded-xl bg-cream-50 focus-visible:ring-purple-500 p-6 text-lg ${passwordError ? "border-red-400 ring-1 ring-red-300" : "border-purple-200"}`}
+                    onChange={() => passwordError && setPasswordError("")}
                   />
                   <button
                     type="button"
@@ -160,11 +172,10 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {passwordError && <p className="text-xs text-red-500 mt-1">{passwordError}</p>}
               </div>
 
               <Button
-                type="submit"
-                className="w-full rounded-xl py-6 text-lg bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-800 hover:to-purple-600 text-white shadow-md transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? (

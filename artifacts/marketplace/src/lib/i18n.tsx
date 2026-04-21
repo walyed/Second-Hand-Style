@@ -97,6 +97,7 @@ const translations = {
   "browse.clearFilters": { EN: "Clear all filters", "עברית": "נקה את כל המסננים", "عربي": "مسح جميع الفلاتر" },
   "browse.loadMore": { EN: "Load More", "עברית": "טען עוד", "عربي": "تحميل المزيد" },
   "browse.loading": { EN: "Loading...", "עברית": "...טוען", "عربي": "...جاري التحميل" },
+  "browse.searchCity": { EN: "Search city...", "עברית": "חפש עיר...", "عربي": "ابحث عن مدينة..." },
 
   // Conditions
   "cond.New": { EN: "New", "עברית": "חדש", "عربي": "جديد" },
@@ -153,6 +154,7 @@ const translations = {
   "post.goToDashboard": { EN: "Go to Dashboard", "עברית": "עבור ללוח בקרה", "عربي": "الذهاب للوحة التحكم" },
   "post.viewListing": { EN: "View Listing", "עברית": "צפה במוצר", "عربي": "عرض المنتج" },
   "post.loginRequired": { EN: "Please log in to post an item", "עברית": "התחברו כדי לפרסם פריט", "عربي": "يرجى تسجيل الدخول لنشر منتج" },
+  "post.specialDealLocked": { EN: "Auto-detected · 20% off original price", "עברית": "זוהה אוטומטית · 20% הנחה ממחיר מקורי", "عربي": "تم الكشف تلقائياً · خصم 20% من السعر الأصلي" },
 
   // ──────────────── LOGIN PAGE ────────────────
   "login.welcome": { EN: "Welcome back.", "עברית": ".ברוכים השבים", "عربي": ".مرحباً بعودتك" },
@@ -170,6 +172,8 @@ const translations = {
   "login.noAccount": { EN: "Don't have an account?", "עברית": "?אין לכם חשבון", "عربي": "ليس لديك حساب؟" },
   "login.registerHere": { EN: "Register here", "עברית": "הירשמו כאן", "عربي": "سجل هنا" },
   "login.enterIdentifier": { EN: "Please enter your email or phone number", "עברית": "הזינו אימייל או מספר טלפון", "عربي": "يرجى إدخال بريدك الإلكتروني أو رقم هاتفك" },
+  "login.errorEmailRequired": { EN: "Email or phone number is required", "עברית": "אימייל או מספר טלפון נדרש", "عربي": "البريد الإلكتروني أو رقم الهاتف مطلوب" },
+  "login.errorPasswordRequired": { EN: "Password is required", "עברית": "סיסמה נדרשת", "عربي": "كلمة المرور مطلوبة" },
   "login.success": { EN: "Welcome back!", "עברית": "!ברוכים השבים", "عربي": "!مرحباً بعودتك" },
 
   // ──────────────── REGISTER PAGE ────────────────

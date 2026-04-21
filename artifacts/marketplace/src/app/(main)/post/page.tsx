@@ -49,14 +49,19 @@ export default function PostItem() {
   const handleNext = () => setStep((s) => Math.min(s + 1, 3));
   const handleBack = () => setStep((s) => Math.max(s - 1, 1));
 
-  // Auto-detect "Special Deal" when sell price < 20% of original price
+  // Auto-detect "Special Deal" when sell price is 20% or more off original price
   React.useEffect(() => {
     const op = Number(formData.originalPrice);
     const sp = Number(formData.sellPrice);
-    if (op > 0 && sp > 0 && sp < op * 0.2) {
-      if (formData.condition !== "Special Deal") {
-        setFormData((prev) => ({ ...prev, condition: "Special Deal" }));
-      }
+    if (op <= 0) return;
+    const specialPrice = Math.round(op * 0.8);
+    if (sp > 0 && sp <= specialPrice) {
+      setFormData((prev) => {
+        if (prev.condition === "Special Deal" && Number(prev.sellPrice) === specialPrice) return prev;
+        return { ...prev, condition: "Special Deal", sellPrice: String(specialPrice) };
+      });
+    } else if (formData.condition === "Special Deal") {
+      setFormData((prev) => ({ ...prev, condition: "" }));
     }
   }, [formData.originalPrice, formData.sellPrice]);
 
@@ -370,7 +375,6 @@ export default function PostItem() {
                         "Furniture",
                         "Electronics",
                         "Kitchen",
-                        "Clothing",
                         "Other",
                       ].map((cat) => (
                         <button
@@ -391,22 +395,32 @@ export default function PostItem() {
                     <Label className="text-purple-900 font-bold mb-3 block">
                       {t('post.conditionLabel')}
                     </Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {["New", "Used", "Refurbished", "Special Deal"].map(
-                        (cond) => (
-                          <button
-                            key={cond}
-                            type="button"
-                            onClick={() =>
-                              setFormData({ ...formData, condition: cond })
-                            }
-                            className={`p-4 rounded-xl border text-center transition-all ${formData.condition === cond ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
-                          >
-                            {t(`cond.${cond}`)}
-                          </button>
-                        )
-                      )}
-                    </div>
+                    {formData.condition === "Special Deal" ? (
+                      <div className="p-4 rounded-xl bg-amber-50 border-2 border-amber-400 flex items-center gap-3">
+                        <span className="text-2xl">⚡</span>
+                        <div>
+                          <div className="font-bold text-amber-800">{t('cond.Special Deal')}</div>
+                          <div className="text-xs text-amber-600">{t('post.specialDealLocked')}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {["New", "Used", "Refurbished"].map(
+                          (cond) => (
+                            <button
+                              key={cond}
+                              type="button"
+                              onClick={() =>
+                                setFormData({ ...formData, condition: cond })
+                              }
+                              className={`p-4 rounded-xl border text-center transition-all ${formData.condition === cond ? "bg-purple-100 border-purple-500 text-purple-900 font-bold shadow-sm" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}
+                            >
+                              {t(`cond.${cond}`)}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-6">
@@ -441,13 +455,13 @@ export default function PostItem() {
                         id="sprice"
                         type="number"
                         value={formData.sellPrice}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            sellPrice: e.target.value,
-                          })
-                        }
-                        className="rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900"
+                        readOnly={formData.condition === "Special Deal"}
+                        onChange={(e) => {
+                          if (formData.condition !== "Special Deal") {
+                            setFormData({ ...formData, sellPrice: e.target.value });
+                          }
+                        }}
+                        className={`rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900 ${formData.condition === "Special Deal" ? "opacity-70 cursor-not-allowed" : ""}`}
                       />
                     </div>
                   </div>

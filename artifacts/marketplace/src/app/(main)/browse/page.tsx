@@ -2,12 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Filter, SlidersHorizontal, Loader2 } from "lucide-react";
-import { api, type Listing, type Category, type Condition, type City } from "@/lib/api";
+import { Filter, SlidersHorizontal, Loader2, MapPin, X } from "lucide-react";
+import { api, type Listing, type Category, type Condition } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
@@ -19,9 +17,10 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function Browse() {
   const { t } = useTranslation();
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
-  const [selectedCities, setSelectedCities] = useState<City[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<Category | "">("");
+  const [selectedCondition, setSelectedCondition] = useState<Condition | "">("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [cityInput, setCityInput] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">(
     "newest"
   );
@@ -30,28 +29,33 @@ export default function Browse() {
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const categories: Category[] = [
-    "Furniture",
-    "Electronics",
-    "Kitchen",
-    "Clothing",
-    "Other",
-  ];
-  const conditions: Condition[] = [
-    "New",
-    "Used",
-    "Refurbished",
-    "Special Deal",
-  ];
-  const cities: City[] = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
+  const categories: Category[] = ["Furniture", "Electronics", "Kitchen", "Other"];
+  const conditions: Condition[] = ["New", "Used", "Refurbished", "Special Deal"];
+  const cities = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
 
-  const handleToggle = <T,>(list: T[], setList: (v: T[]) => void, item: T) => {
-    if (list.includes(item)) {
-      setList(list.filter((i) => i !== item));
-    } else {
-      setList([...list, item]);
-    }
-  };
+  // Auto-detect user city from browser geolocation (Israel only)
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude: lat, longitude: lon } }) => {
+        if (lat < 29 || lat > 34 || lon < 33 || lon > 36) return;
+        const cityCoords: [string, number, number][] = [
+          ["Tel Aviv", 32.0853, 34.7818],
+          ["Jerusalem", 31.7683, 35.2137],
+          ["Haifa", 32.794, 34.9896],
+          ["Eilat", 29.5581, 34.9482],
+        ];
+        let nearest = "";
+        let minDist = Infinity;
+        for (const [city, clat, clon] of cityCoords) {
+          const d = (lat - clat) ** 2 + (lon - clon) ** 2;
+          if (d < minDist) { minDist = d; nearest = city; }
+        }
+        if (nearest) { setSelectedCity(nearest); setCityInput(nearest); }
+      },
+      () => {}
+    );
+  }, []);
 
   const fetchListings = async (reset = true) => {
     const newOffset = reset ? 0 : offset;
@@ -65,9 +69,9 @@ export default function Browse() {
         "price-desc": "price_desc",
       };
       const data = await api.getListings({
-        category: selectedCategories.length > 0 ? selectedCategories.join(",") : undefined,
-        condition: selectedConditions.length > 0 ? selectedConditions.join(",") : undefined,
-        city: selectedCities.length > 0 ? selectedCities.join(",") : undefined,
+        category: selectedCategory || undefined,
+        condition: selectedCondition || undefined,
+        city: selectedCity || undefined,
         sort: sortMap[sortBy],
         limit: 18,
         offset: newOffset,
@@ -89,7 +93,7 @@ export default function Browse() {
 
   useEffect(() => {
     fetchListings(true);
-  }, [selectedCategories, selectedConditions, selectedCities, sortBy]);
+  }, [selectedCategory, selectedCondition, selectedCity, sortBy]);
 
   const filteredListings = listings;
 
@@ -99,27 +103,20 @@ export default function Browse() {
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
           {t('browse.category')}
         </h3>
-        <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <div key={cat} className="flex items-center space-x-2">
-              <Checkbox
-                id={`cat-${cat}`}
-                checked={selectedCategories.includes(cat)}
-                onCheckedChange={() =>
-                  handleToggle(
-                    selectedCategories,
-                    setSelectedCategories,
-                    cat
-                  )
-                }
-              />
-              <Label
-                htmlFor={`cat-${cat}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {t(`cat.${cat}`)}
-              </Label>
-            </div>
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(selectedCategory === cat ? "" : cat)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                selectedCategory === cat
+                  ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                  : "bg-white text-purple-700 border-purple-200 hover:border-purple-400"
+              }`}
+            >
+              {t(`cat.${cat}`)}
+            </button>
           ))}
         </div>
       </div>
@@ -128,27 +125,20 @@ export default function Browse() {
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
           {t('browse.condition')}
         </h3>
-        <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
           {conditions.map((cond) => (
-            <div key={cond} className="flex items-center space-x-2">
-              <Checkbox
-                id={`cond-${cond}`}
-                checked={selectedConditions.includes(cond)}
-                onCheckedChange={() =>
-                  handleToggle(
-                    selectedConditions,
-                    setSelectedConditions,
-                    cond
-                  )
-                }
-              />
-              <Label
-                htmlFor={`cond-${cond}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {t(`cond.${cond}`)}
-              </Label>
-            </div>
+            <button
+              key={cond}
+              type="button"
+              onClick={() => setSelectedCondition(selectedCondition === cond ? "" : cond)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                selectedCondition === cond
+                  ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                  : "bg-white text-purple-700 border-purple-200 hover:border-purple-400"
+              }`}
+            >
+              {t(`cond.${cond}`)}
+            </button>
           ))}
         </div>
       </div>
@@ -157,25 +147,41 @@ export default function Browse() {
         <h3 className="font-serif text-xl font-bold mb-4 border-b border-purple-100 pb-2">
           {t('browse.location')}
         </h3>
-        <div className="space-y-3">
-          {cities.map((city) => (
-            <div key={city} className="flex items-center space-x-2">
-              <Checkbox
-                id={`city-${city}`}
-                checked={selectedCities.includes(city)}
-                onCheckedChange={() =>
-                  handleToggle(selectedCities, setSelectedCities, city)
-                }
-              />
-              <Label
-                htmlFor={`city-${city}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {t(`city.${city}`)}
-              </Label>
-            </div>
-          ))}
+        <div className="relative">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+          <input
+            list="city-options"
+            value={cityInput}
+            onChange={(e) => {
+              setCityInput(e.target.value);
+              const match = cities.find(
+                (c) => c.toLowerCase() === e.target.value.toLowerCase()
+              );
+              setSelectedCity(match ?? "");
+            }}
+            placeholder={t('browse.searchCity')}
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-purple-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+          <datalist id="city-options">
+            {cities.map((city) => (
+              <option key={city} value={city} />
+            ))}
+          </datalist>
+          {cityInput && (
+            <button
+              type="button"
+              onClick={() => { setCityInput(""); setSelectedCity(""); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
+        {selectedCity && (
+          <p className="text-xs text-purple-500 mt-1.5 flex items-center gap-1">
+            <MapPin className="w-3 h-3" /> {t(`city.${selectedCity}`)}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -255,9 +261,10 @@ export default function Browse() {
                   variant="outline"
                   className="mt-6 border-purple-200"
                   onClick={() => {
-                    setSelectedCategories([]);
-                    setSelectedConditions([]);
-                    setSelectedCities([]);
+                    setSelectedCategory("");
+                    setSelectedCondition("");
+                    setSelectedCity("");
+                    setCityInput("");
                   }}
                 >
                   {t('browse.clearFilters')}

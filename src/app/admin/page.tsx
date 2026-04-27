@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
@@ -458,6 +459,7 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const openEdit = (item: any) => {
     setEditingItem(item);
@@ -564,8 +566,8 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this item? This cannot be undone.")) return;
     setActionLoading(`del-${id}`);
+    setDeleteConfirmId(null);
     try {
       await api.deleteListing(id);
       toast.success("Item deleted");
@@ -592,6 +594,45 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
       transition={{ duration: 0.2 }}
       className="space-y-6"
     >
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && createPortal(
+        <AnimatePresence>
+          <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4" onClick={() => setDeleteConfirmId(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 16 }}
+              transition={{ duration: 0.18 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-14 h-14 rounded-full bg-red-50 border-2 border-red-100 flex items-center justify-center mx-auto">
+                <Trash2 className="w-7 h-7 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-serif text-xl font-bold text-purple-900 mb-1">Delete Item?</h3>
+                <p className="text-purple-500 text-sm">This action cannot be undone. The item will be permanently removed.</p>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="flex-1 py-2.5 rounded-full border border-purple-200 text-purple-700 font-medium hover:bg-purple-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirmId)}
+                  className="flex-1 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </AnimatePresence>,
+        document.body
+      )}
+
       {/* Edit Modal */}
       <AnimatePresence>
         {editingItem && (
@@ -863,7 +904,7 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                     </button>
                     <button
                       disabled={actionLoading === item.id || actionLoading === `del-${item.id}`}
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => setDeleteConfirmId(item.id)}
                       className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                       title="Delete listing"
                     >

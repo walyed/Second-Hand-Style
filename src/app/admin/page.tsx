@@ -19,11 +19,17 @@ import {
   X,
   Upload,
   Loader2,
+  Pencil,
+  MessageSquare,
+  Mail,
+  Phone,
+  CheckCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-type Tab = "dashboard" | "items" | "users";
+type Tab = "dashboard" | "items" | "users" | "contacts";
 
 export default function Admin() {
   const router = useRouter();
@@ -32,6 +38,7 @@ export default function Admin() {
   const [stats, setStats] = useState<any>(null);
   const [allListings, setAllListings] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allContacts, setAllContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = () => {
@@ -39,10 +46,12 @@ export default function Admin() {
       api.getAdminStats().catch(() => null),
       api.getAdminListings().catch(() => []),
       api.getAdminUsers().catch(() => []),
-    ]).then(([s, l, u]) => {
+      api.getContactRequests().catch(() => []),
+    ]).then(([s, l, u, c]) => {
       setStats(s);
       setAllListings(l);
       setAllUsers(u);
+      setAllContacts(c);
       setLoading(false);
     });
   };
@@ -74,6 +83,7 @@ export default function Admin() {
     { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
     { id: "items", label: "Items", icon: <Package className="w-5 h-5" /> },
     { id: "users", label: "Users", icon: <Users className="w-5 h-5" /> },
+    { id: "contacts", label: "Contact Requests", icon: <MessageSquare className="w-5 h-5" /> },
   ];
 
   return (
@@ -117,6 +127,7 @@ export default function Admin() {
             {activeTab === "dashboard" && <DashboardView inProcessListings={inProcessListings} soldListings={soldListings} stats={stats} recentUsers={allUsers.slice(0, 5)} onStatusChange={loadData} />}
             {activeTab === "items" && <ItemsView listings={allListings} onStatusChange={loadData} />}
             {activeTab === "users" && <UsersView users={allUsers} />}
+            {activeTab === "contacts" && <ContactsView contacts={allContacts} onRefresh={loadData} />}
           </AnimatePresence>
         </div>
       </main>
@@ -430,6 +441,11 @@ function DashboardView({ inProcessListings, soldListings, stats, recentUsers, on
 function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChange: () => void }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState({ title: "", description: "", category: "Furniture", condition: "New", city: "Tel Aviv" });
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [editLoading, setEditLoading] = useState(false);
+  const editFileRef = useRef<HTMLInputElement>(null);
   const [addFormData, setAddFormData] = useState({
     title: "",
     description: "",
@@ -442,6 +458,52 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
+
+  const openEdit = (item: any) => {
+    setEditingItem(item);
+    setEditFormData({ title: item.title, description: item.description || "", category: item.category, condition: item.condition, city: item.city || "Tel Aviv" });
+    setEditImages(item.images ?? []);
+  };
+
+  const handleEditImageFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) continue;
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from("listing-images").upload(fileName, file, { upsert: false });
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
+        setEditImages((p) => [...p, urlData.publicUrl]);
+      } else {
+        setEditImages((p) => [...p, URL.createObjectURL(file)]);
+      }
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editFormData.title.trim() || !editingItem) return;
+    setEditLoading(true);
+    try {
+      await api.updateListing(editingItem.id, {
+        title: editFormData.title.trim(),
+        description: editFormData.description.trim(),
+        category: editFormData.category,
+        condition: editFormData.condition,
+        city: editFormData.city,
+        images: editImages,
+        originalPrice: 0,
+        sellPrice: 0,
+      });
+      toast.success("Item updated!");
+      setEditingItem(null);
+      onStatusChange();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update item");
+    }
+    setEditLoading(false);
+  };
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -493,17 +555,24 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
     setActionLoading(id);
     try {
       await api.updateListingStatus(id, status);
+      toast.success("Status updated");
       onStatusChange();
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status");
+    }
     setActionLoading(null);
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm("Delete this item? This cannot be undone.")) return;
     setActionLoading(`del-${id}`);
     try {
       await api.deleteListing(id);
+      toast.success("Item deleted");
       onStatusChange();
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete item");
+    }
     setActionLoading(null);
   };
 
@@ -523,6 +592,88 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
       transition={{ duration: 0.2 }}
       className="space-y-6"
     >
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingItem && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditingItem(null)}>
+            <motion.form
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onSubmit={handleSaveEdit}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-purple-100">
+                <h2 className="font-serif text-xl font-bold text-purple-900">Edit Item</h2>
+                <button type="button" onClick={() => setEditingItem(null)} className="p-2 rounded-xl hover:bg-purple-50 text-purple-400"><X className="w-5 h-5" /></button>
+              </div>
+
+              {/* Photos */}
+              <div>
+                <label className="text-sm font-medium text-purple-700 block mb-2">Photos</label>
+                <div className="flex flex-wrap gap-2">
+                  {editImages.map((img, idx) => (
+                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-purple-100">
+                      <img src={img} className="w-full h-full object-cover" alt="" />
+                      <button type="button" onClick={() => setEditImages((p) => p.filter((_, i) => i !== idx))}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 text-white rounded-full flex items-center justify-center hover:bg-red-600">
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => editFileRef.current?.click()}
+                    className="w-16 h-16 border-2 border-dashed border-purple-200 rounded-lg flex flex-col items-center justify-center text-purple-400 hover:border-purple-400 hover:text-purple-600 transition-colors">
+                    <Upload className="w-4 h-4" /><span className="text-xs mt-0.5">Add</span>
+                  </button>
+                </div>
+                <input ref={editFileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleEditImageFiles(e.target.files)} />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">Title *</label>
+                <input value={editFormData.title} onChange={(e) => setEditFormData((p) => ({ ...p, title: e.target.value }))}
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">Description</label>
+                <textarea value={editFormData.description} onChange={(e) => setEditFormData((p) => ({ ...p, description: e.target.value }))}
+                  rows={3} className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 resize-none" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-purple-700">Category</label>
+                  <select value={editFormData.category} onChange={(e) => setEditFormData((p) => ({ ...p, category: e.target.value }))}
+                    className="w-full border border-purple-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white">
+                    {["Furniture", "Electronics", "Kitchen", "Other"].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-purple-700">Condition</label>
+                  <select value={editFormData.condition} onChange={(e) => setEditFormData((p) => ({ ...p, condition: e.target.value }))}
+                    className="w-full border border-purple-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white">
+                    {["New", "Used", "Refurbished"].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-purple-700">City</label>
+                  <select value={editFormData.city} onChange={(e) => setEditFormData((p) => ({ ...p, city: e.target.value }))}
+                    className="w-full border border-purple-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white">
+                    {["Tel Aviv", "Jerusalem", "Haifa", "Eilat"].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)} className="flex-1 rounded-full border-purple-200">Cancel</Button>
+                <Button type="submit" disabled={editLoading} className="flex-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white">
+                  {editLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+                </Button>
+              </div>
+            </motion.form>
+          </div>
+        )}
+      </AnimatePresence>
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold font-serif">All Items</h1>
         <div className="flex items-center gap-3">
@@ -704,11 +855,19 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                     </select>
                     <button
                       disabled={actionLoading === item.id || actionLoading === `del-${item.id}`}
+                      onClick={() => openEdit(item)}
+                      className="p-1.5 rounded-lg text-purple-400 hover:text-purple-700 hover:bg-purple-50 transition-colors disabled:opacity-40"
+                      title="Edit item"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      disabled={actionLoading === item.id || actionLoading === `del-${item.id}`}
                       onClick={() => handleDelete(item.id)}
                       className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                       title="Delete listing"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {actionLoading === `del-${item.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                     </button>
                   </div>
                 </td>
@@ -721,7 +880,97 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
   );
 }
 
-/* ─── Users Tab ─── */
+/* ─── Contacts Tab ─── */
+function ContactsView({ contacts, onRefresh }: { contacts: any[]; onRefresh: () => void }) {
+  const [marking, setMarking] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
+
+  const filtered = contacts.filter((c) => {
+    if (filter === "unread") return !c.is_read;
+    if (filter === "read") return c.is_read;
+    return true;
+  });
+
+  const handleToggleRead = async (id: string, current: boolean) => {
+    setMarking(id);
+    try {
+      await api.markContactRead(id, !current);
+      onRefresh();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update");
+    }
+    setMarking(null);
+  };
+
+  return (
+    <motion.div
+      key="contacts"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-6"
+    >
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <h1 className="text-3xl font-bold font-serif">Contact Requests</h1>
+        <div className="flex items-center gap-2 text-sm">
+          {(["all", "unread", "read"] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`px-4 py-1.5 rounded-full border transition-colors capitalize ${filter === f ? "bg-purple-600 text-white border-purple-600" : "border-purple-200 text-purple-700 hover:bg-purple-50"}`}>
+              {f} {f === "unread" && contacts.filter((c) => !c.is_read).length > 0 && (
+                <span className="ml-1 bg-red-500 text-white rounded-full px-1.5 py-0.5 text-xs">{contacts.filter((c) => !c.is_read).length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-purple-100 border-dashed">
+          <MessageSquare className="w-12 h-12 text-purple-300 mx-auto mb-4" />
+          <p className="text-purple-500 font-medium">No contact requests yet</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filtered.map((contact, i) => (
+            <motion.div
+              key={contact.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              className={`bg-white border rounded-2xl p-5 shadow-sm transition-colors ${contact.is_read ? "border-purple-100" : "border-purple-300 bg-purple-50/40"}`}
+            >
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-purple-900 text-lg">{contact.name}</span>
+                    {!contact.is_read && <span className="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">New</span>}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-purple-500 flex-wrap">
+                    <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{contact.email}</span>
+                    {contact.phone && <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{contact.phone}</span>}
+                    <span className="text-xs text-purple-400">{new Date(contact.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
+                <button
+                  disabled={marking === contact.id}
+                  onClick={() => handleToggleRead(contact.id, contact.is_read)}
+                  className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border transition-colors disabled:opacity-50 ${contact.is_read ? "border-purple-200 text-purple-500 hover:bg-purple-50" : "border-green-300 text-green-700 bg-green-50 hover:bg-green-100"}`}
+                >
+                  {marking === contact.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCheck className="w-3 h-3" />}
+                  {contact.is_read ? "Mark Unread" : "Mark Read"}
+                </button>
+              </div>
+              <div className="mt-4 bg-purple-50 rounded-xl p-4 text-sm text-purple-800 leading-relaxed border border-purple-100">
+                {contact.message}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 function UsersView({ users }: { users: any[] }) {
 
   return (

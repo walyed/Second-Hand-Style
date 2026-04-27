@@ -392,4 +392,37 @@ export const api = {
       buyerPhone: row.buyer?.phone ?? null,
     }));
   },
+
+  // ─── Contact Requests ────────────────────────────────────
+  submitContactRequest: async (input: {
+    name: string;
+    email: string;
+    phone?: string;
+    message: string;
+  }) => {
+    const { error } = await supabase.from("contact_requests").insert({
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      phone: input.phone?.trim() || null,
+      message: input.message.trim(),
+    });
+    if (error) throw error;
+  },
+
+  getContactRequests: async () => {
+    const { data, error } = await supabase
+      .from("contact_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  markContactRead: async (id: string, is_read: boolean) => {
+    const { error } = await supabase
+      .from("contact_requests")
+      .update({ is_read })
+      .eq("id", id);
+    if (error) throw error;
+  },
 };

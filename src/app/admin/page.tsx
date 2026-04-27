@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Search,
   LayoutDashboard,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -433,6 +434,15 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
     setActionLoading(null);
   };
 
+  const handleDelete = async (id: string) => {
+    setActionLoading(`del-${id}`);
+    try {
+      await api.deleteListing(id);
+      onStatusChange();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
+
   const statusColors: Record<string, string> = {
     active: "bg-green-100 text-green-800 border-green-200",
     in_process: "bg-amber-100 text-amber-800 border-amber-200",
@@ -494,17 +504,27 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                 </td>
                 <td className="p-4 font-mono font-bold text-purple-700">₪{item.sellPrice}</td>
                 <td className="p-4">
-                  <select
-                    disabled={actionLoading === item.id}
-                    value={item.status}
-                    onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                    className="text-xs border border-purple-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 ring-purple-400"
-                  >
-                    <option value="active">Active</option>
-                    <option value="in_process">In Process</option>
-                    <option value="sold">Sold</option>
-                    <option value="removed">Removed</option>
-                  </select>
+                  <div className="flex items-center gap-2">
+                    <select
+                      disabled={actionLoading === item.id || actionLoading === `del-${item.id}`}
+                      value={item.status}
+                      onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                      className="text-xs border border-purple-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 ring-purple-400"
+                    >
+                      <option value="active">Active</option>
+                      <option value="in_process">In Process</option>
+                      <option value="sold">Sold</option>
+                      <option value="removed">Removed</option>
+                    </select>
+                    <button
+                      disabled={actionLoading === item.id || actionLoading === `del-${item.id}`}
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      title="Delete listing"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </motion.tr>
             ))}

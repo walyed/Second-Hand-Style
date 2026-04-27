@@ -16,21 +16,26 @@ const translations = {
   "nav.login": { EN: "Login", "עברית": "התחבר", "عربي": "تسجيل دخول" },
 
   // ──────────────── HOME PAGE ────────────────
-  "home.hero.title1": { EN: "Buy Less.", "עברית": ".קנו פחות", "عربي": ".اشترِ أقل" },
-  "home.hero.title2": { EN: "Choose", "עברית": "בחרו", "عربي": "اختر" },
-  "home.hero.title3": { EN: "Well.", "עברית": ".בחוכמה", "عربي": ".بحكمة" },
+  "home.hero.title1": { EN: "Bestow", "עברית": "Bestow", "عربي": "Bestow" },
+  "home.hero.title2": { EN: "", "עברית": "", "عربي": "" },
+  "home.hero.title3": { EN: "", "עברית": "", "عربي": "" },
   "home.hero.subtitle": {
-    EN: "Curated premium second-hand goods. Reimagined for modern living.",
-    "עברית": "מוצרי יד שנייה איכותיים ומובחרים. מעוצבים מחדש לחיים מודרניים.",
-    "عربي": "سلع مستعملة فاخرة ومختارة. أُعيد تصميمها للحياة العصرية.",
+    EN: "Where giving becomes a way of life.",
+    "עברית": "נתינה שהופכת לדרך חיים.",
+    "عربي": "العطاء يصبح أسلوب حياة.",
   },
-  "home.browseItems": { EN: "Browse Items", "עברית": "עיון במוצרים", "عربي": "تصفح المنتجات" },
-  "home.startSelling": { EN: "Start Selling", "עברית": "התחל למכור", "عربي": "ابدأ البيع" },
+  "home.hero.desc": {
+    EN: "Passing on furniture and items between people — with ease and warmth",
+    "עברית": "מעבירים הלאה חפצים ורהיטים בין אנשים — בקלות ובחום",
+    "عربي": "نمرر الأثاث والأغراض بين الناس — بكل سهولة ودفء",
+  },
+  "home.browseItems": { EN: "Find What You Need", "עברית": "מצא מה שאתה צריך", "عربي": "ابحث عما تحتاجه" },
+  "home.startSelling": { EN: "Start Giving", "עברית": "התחל להעביר הלאה", "عربي": "ابدأ العطاء" },
 
   // Categories
   "cat.Furniture": { EN: "Furniture", "עברית": "רהיטים", "عربي": "أثاث" },
-  "cat.Electronics": { EN: "Electronics", "עברית": "אלקטרוניקה", "عربي": "إلكترونيات" },
-  "cat.Kitchen": { EN: "Kitchen", "עברית": "מטבח", "عربي": "مطبخ" },
+  "cat.Electronics": { EN: "Electrical Products", "עברית": "מוצרי חשמל", "عربي": "منتجات كهربائية" },
+  "cat.Kitchen": { EN: "Housewares", "עברית": "כלי בית", "عربي": "أدوات المنزل" },
   "cat.Clothing": { EN: "Clothing", "עברית": "ביגוד", "عربي": "ملابس" },
   "cat.Other": { EN: "Other", "עברית": "אחר", "عربي": "أخرى" },
 
@@ -294,9 +299,9 @@ const translations = {
 
   // ──────────────── FOOTER ────────────────
   "footer.tagline": {
-    EN: "A premium second-hand marketplace that feels like a luxury e-commerce experience. Buy less. Choose well.",
-    "עברית": "שוק יד שנייה פרימיום שמרגיש כמו חוויית קניות יוקרתית. קנו פחות. בחרו בחוכמה.",
-    "عربي": "سوق مستعمل فاخر يشبه تجربة تسوق راقية. اشترِ أقل. اختر بحكمة.",
+    EN: "We believe that giving has the power to create a change in people, communities, and the environment. We are here to enable everyone to take part in a circle of care, where items are given new life and people connect with one another.",
+    "עברית": "האתר נולד מתוך אמונה שלנתינה יש כוח לשנות — אנשים, קהילות וסביבה. אנחנו כאן כדי לאפשר לכל אחד לקחת חלק במעגל של אכפתיות, שבו חפצים מקבלים חיים חדשים ואנשים מתחברים זה לזה.",
+    "عربي": "وُلد هذا الموقع من إيمان بأن للعطاء قوة على التغيير — تغيير الناس، والمجتمعات، والبيئة. نحن هنا لتمكين كل شخص من أن يكون جزءًا من دائرة من الاهتمام، حيث تحصل الأشياء على حياة جديدة ويتواصل الناس مع بعضهم البعض.",
   },
   "footer.explore": { EN: "Explore", "עברית": "עיון", "عربي": "استكشاف" },
   "footer.allItems": { EN: "All Items", "עברית": "כל הפריטים", "عربي": "جميع المنتجات" },

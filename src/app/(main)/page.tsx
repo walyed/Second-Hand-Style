@@ -53,12 +53,14 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 tracking-tight">
-              {t('home.hero.title1')} <br className="md:hidden" /> {t('home.hero.title2')}{" "}
-              <span className="animate-shimmer">{t('home.hero.title3')}</span>
+            <h1 className="font-serif text-6xl md:text-8xl font-bold mb-4 tracking-tight">
+              <span className="animate-shimmer">{t('home.hero.title1')}</span>
             </h1>
-            <p className="text-xl md:text-2xl text-purple-700/80 max-w-2xl mx-auto mb-10 font-sans font-light">
+            <p className="text-2xl md:text-3xl text-purple-800 max-w-2xl mx-auto mb-3 font-serif italic font-light">
               {t('home.hero.subtitle')}
+            </p>
+            <p className="text-lg md:text-xl text-purple-700/80 max-w-2xl mx-auto mb-10 font-sans font-light">
+              {t('home.hero.desc')}
             </p>
           </motion.div>
 

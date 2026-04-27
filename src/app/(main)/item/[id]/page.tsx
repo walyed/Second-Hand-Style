@@ -189,34 +189,9 @@ export default function ItemDetail() {
           <div className="w-full md:w-80 lg:w-96 shrink-0">
             <div className="sticky top-24 space-y-6">
               <div className="glass rounded-3xl p-6 md:p-8 shadow-xl">
-                <div className="mb-6">
-                  <div className="text-sm text-purple-400 mb-1">
-                    {t('item.originalPrice')}
-                  </div>
-                  <motion.div
-                    initial={{ clipPath: "inset(0 100% 0 0)" }}
-                    animate={{ clipPath: "inset(0 0% 0 0)" }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                    className="inline-block relative text-2xl text-purple-300 font-medium"
-                  >
-                    ₪{listing.originalPrice.toLocaleString()}
-                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-red-500/50 -rotate-3" />
-                  </motion.div>
+                {/* PRICES HIDDEN — free giving platform (price data preserved in DB/API) */}
 
-                  <div className="text-sm text-purple-600 mt-4 mb-1 font-medium">
-                    {t('item.sellingFor')}
-                  </div>
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", bounce: 0.5, delay: 0.2 }}
-                    className="text-5xl font-bold text-purple-900"
-                  >
-                    ₪{listing.sellPrice.toLocaleString()}
-                  </motion.div>
-                </div>
-
-                <div className="border-t border-purple-100 pt-6 mb-6">
+                <div className="border-b border-purple-100 pb-6 mb-6">
                   <div className="text-sm font-medium text-purple-400 mb-3 uppercase tracking-wider">
                     {t('item.location')}
                   </div>

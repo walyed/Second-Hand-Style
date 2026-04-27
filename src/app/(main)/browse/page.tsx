@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Filter, SlidersHorizontal, Loader2, MapPin, X, RefreshCw } from "lucide-react";
+import { Filter, SlidersHorizontal, Loader2, MapPin, X, RefreshCw, Search } from "lucide-react";
 import { api, type Listing, type Category, type Condition } from "@/lib/api";
 import { ListingCard } from "@/components/ListingCard";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,8 @@ export default function Browse() {
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [cityInput, setCityInput] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "price-asc" | "price-desc">(
-    "newest"
-  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"newest">("newest");
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
@@ -74,6 +73,7 @@ export default function Browse() {
         condition: selectedConditions.length > 0 ? selectedConditions.join(",") : undefined,
         city: selectedCity || undefined,
         sort: sortMap[sortBy],
+        search: searchQuery || undefined,
         limit: 18,
         offset: newOffset,
       });
@@ -90,11 +90,11 @@ export default function Browse() {
       setIsLoading(false);
       setLoadingMore(false);
     }
-  }, [selectedCategories, selectedConditions, selectedCity, sortBy, offset]);
+  }, [selectedCategories, selectedConditions, selectedCity, sortBy, searchQuery, offset]);
 
   useEffect(() => {
     fetchListings(true);
-  }, [selectedCategories, selectedConditions, selectedCity, sortBy]);
+  }, [selectedCategories, selectedConditions, selectedCity, sortBy, searchQuery]);
 
   const filteredListings = listings;
 
@@ -203,6 +203,27 @@ export default function Browse() {
             {t('browse.title')}
           </h1>
 
+          {/* Search Input */}
+          <div className="flex-1 max-w-md relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('browse.searchPlaceholder') || "Search items..."}
+              className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-purple-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center gap-4">
             <div className="text-sm text-purple-600 font-medium">
               {t('browse.showing')} {filteredListings.length} {t('browse.results')}
@@ -230,16 +251,6 @@ export default function Browse() {
                 <FilterContent />
               </SheetContent>
             </Sheet>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-white border border-purple-200 text-purple-900 text-sm rounded-lg focus:ring-purple-500 focus:border-purple-500 block p-2.5 outline-none shadow-sm"
-            >
-              <option value="newest">{t('browse.newest')}</option>
-              <option value="price-asc">{t('browse.priceLow')}</option>
-              <option value="price-desc">{t('browse.priceHigh')}</option>
-            </select>
           </div>
         </div>
 

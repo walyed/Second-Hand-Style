@@ -14,6 +14,8 @@ import {
   Search,
   LayoutDashboard,
   Trash2,
+  Plus,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -424,6 +426,44 @@ function DashboardView({ inProcessListings, soldListings, stats, recentUsers, on
 /* ─── Items Tab ─── */
 function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChange: () => void }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addFormData, setAddFormData] = useState({
+    title: "",
+    description: "",
+    category: "Furniture",
+    condition: "New",
+    city: "Tel Aviv",
+    imageUrl: "",
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+
+  const handleCreateItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addFormData.title.trim()) { setAddError("Title is required"); return; }
+    setAddError("");
+    setAddLoading(true);
+    try {
+      await api.createListing({
+        title: addFormData.title.trim(),
+        description: addFormData.description.trim(),
+        category: addFormData.category,
+        condition: addFormData.condition,
+        city: addFormData.city,
+        originalPrice: 0,
+        sellPrice: 0,
+        images: addFormData.imageUrl.trim()
+          ? [addFormData.imageUrl.trim()]
+          : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800"],
+      });
+      setShowAddForm(false);
+      setAddFormData({ title: "", description: "", category: "Furniture", condition: "New", city: "Tel Aviv", imageUrl: "" });
+      onStatusChange();
+    } catch (err: any) {
+      setAddError(err.message || "Failed to create item");
+    }
+    setAddLoading(false);
+  };
 
   const handleStatusChange = async (id: string, status: string) => {
     setActionLoading(id);
@@ -461,15 +501,129 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
     >
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold font-serif">All Items</h1>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-          <input
-            type="text"
-            placeholder="Search items..."
-            className="bg-white border border-purple-200 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+            <input
+              type="text"
+              placeholder="Search items..."
+              className="bg-white border border-purple-200 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
+            />
+          </div>
+          <Button
+            onClick={() => setShowAddForm((v) => !v)}
+            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 py-2 text-sm flex items-center gap-2"
+          >
+            {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showAddForm ? "Cancel" : "Add Item"}
+          </Button>
         </div>
       </div>
+
+      {/* Add Item Form */}
+      <AnimatePresence>
+        {showAddForm && (
+          <motion.form
+            key="add-form"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+            onSubmit={handleCreateItem}
+            className="bg-white border border-purple-200 rounded-2xl p-6 space-y-4"
+          >
+            <h2 className="font-bold text-lg text-purple-900">Add New Item</h2>
+            {addError && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{addError}</div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2 space-y-1">
+                <label className="text-sm font-medium text-purple-700">Title *</label>
+                <input
+                  type="text"
+                  value={addFormData.title}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, title: e.target.value }))}
+                  placeholder="Item title"
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
+                />
+              </div>
+              <div className="sm:col-span-2 space-y-1">
+                <label className="text-sm font-medium text-purple-700">Description</label>
+                <textarea
+                  value={addFormData.description}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, description: e.target.value }))}
+                  placeholder="Item description"
+                  rows={3}
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 resize-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">Category</label>
+                <select
+                  value={addFormData.category}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, category: e.target.value }))}
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white"
+                >
+                  {["Furniture", "Electronics", "Kitchen", "Other"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">Condition</label>
+                <select
+                  value={addFormData.condition}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, condition: e.target.value }))}
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white"
+                >
+                  {["New", "Used", "Refurbished"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">City</label>
+                <select
+                  value={addFormData.city}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, city: e.target.value }))}
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white"
+                >
+                  {["Tel Aviv", "Jerusalem", "Haifa", "Eilat"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-purple-700">Image URL (optional)</label>
+                <input
+                  type="url"
+                  value={addFormData.imageUrl}
+                  onChange={(e) => setAddFormData((p) => ({ ...p, imageUrl: e.target.value }))}
+                  placeholder="https://..."
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddForm(false)}
+                className="rounded-full px-6 border-purple-200 text-purple-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={addLoading}
+                className="rounded-full px-6 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                {addLoading ? "Adding..." : "Add Item"}
+              </Button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       <div className="bg-white border border-purple-100 rounded-2xl overflow-hidden">
         <table className="w-full text-left text-sm">

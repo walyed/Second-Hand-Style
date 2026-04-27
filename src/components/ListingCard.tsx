@@ -89,12 +89,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </h3>
         </Link>
         
-        <div className="mt-auto pt-4 flex items-end justify-between">
-          <div>
-            <div className="text-sm text-purple-400 line-through">₪{listing.originalPrice.toLocaleString()}</div>
-            <div className="text-2xl font-bold text-purple-600">₪{listing.sellPrice.toLocaleString()}</div>
-          </div>
-        </div>
+        {/* PRICES HIDDEN — free giving platform (price data preserved in DB/API) */}
       </div>
     </motion.div>
   );

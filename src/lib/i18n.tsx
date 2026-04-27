@@ -7,7 +7,7 @@ export type Lang = "EN" | "עברית" | "عربي";
 const translations = {
   // ──────────────── NAVBAR ────────────────
   "nav.browse": { EN: "Browse", "עברית": "עיון", "عربي": "تصفح" },
-  "nav.sell": { EN: "Sell", "עברית": "מכירה", "عربي": "بيع" },
+  "nav.sell": { EN: "Give", "עברית": "תן", "عربي": "أعطِ " },
   "nav.dashboard": { EN: "Dashboard", "עברית": "לוח בקרה", "عربي": "لوحة التحكم" },
   "nav.menu": { EN: "Menu", "עברית": "תפריט", "عربي": "القائمة" },
   "nav.navigationMenu": { EN: "Navigation menu", "עברית": "תפריט ניווט", "عربي": "قائمة التنقل" },
@@ -87,6 +87,7 @@ const translations = {
 
   // ──────────────── BROWSE PAGE ────────────────
   "browse.title": { EN: "Explore Collection", "עברית": "גלו את האוסף", "عربي": "استكشف المجموعة" },
+  "browse.searchPlaceholder": { EN: "Search items...", "עברית": "...חפש פריטים", "عربي": "...ابحث عن منتجات" },
   "browse.showing": { EN: "Showing", "עברית": "מציג", "عربي": "عرض" },
   "browse.results": { EN: "results", "עברית": "תוצאות", "عربي": "نتائج" },
   "browse.filters": { EN: "Filters", "עברית": "מסננים", "عربي": "فلاتر" },
@@ -120,11 +121,11 @@ const translations = {
   "city.Eilat": { EN: "Eilat", "עברית": "אילת", "عربي": "إيلات" },
 
   // ──────────────── POST / SELL PAGE ────────────────
-  "post.title": { EN: "List an Item", "עברית": "פרסם פריט", "عربي": "أضف منتجاً" },
+  "post.title": { EN: "Give an Item", "עברית": "תן פריט", "عربي": "أعطِ منتجًا" },
   "post.step1": { EN: "Photos & Details", "עברית": "תמונות ופרטים", "عربي": "صور وتفاصيل" },
-  "post.step2": { EN: "Category & Price", "עברית": "קטגוריה ומחיר", "عربي": "الفئة والسعر" },
+  "post.step2": { EN: "Category & Condition", "עברית": "קטגוריה ומצב", "عربي": "الفئة والحالة" },
   "post.step3": { EN: "Review & Post", "עברית": "סקירה ופרסום", "عربي": "مراجعة ونشر" },
-  "post.whatSelling": { EN: "What are you selling?", "עברית": "?מה אתם מוכרים", "عربي": "ماذا تبيع؟" },
+  "post.whatSelling": { EN: "What are you giving away?", "עברית": "מה אתם נותנים?", "عربي": "ماذا تهب به؟" },
   "post.titleLabel": { EN: "Title", "עברית": "כותרת", "عربي": "العنوان" },
   "post.titlePlaceholder": { EN: "e.g. Vintage Leather Sofa", "עברית": "למשל ספה עור וינטג'", "عربي": "مثال: أريكة جلدية كلاسيكية" },
   "post.photos": { EN: "Photos", "עברית": "תמונות", "عربي": "صور" },
@@ -152,12 +153,12 @@ const translations = {
   "post.untitled": { EN: "Untitled Item", "עברית": "פריט ללא שם", "عربي": "منتج بدون عنوان" },
   "post.back": { EN: "Back", "עברית": "חזרה", "عربي": "رجوع" },
   "post.next": { EN: "Next", "עברית": "הבא", "عربي": "التالي" },
-  "post.postListing": { EN: "Post Listing", "עברית": "פרסם מוצר", "عربي": "نشر المنتج" },
-  "post.success.title": { EN: "Item Listed!", "עברית": "!הפריט פורסם", "عربي": "تم نشر المنتج!" },
+  "post.postListing": { EN: "Give Item", "עברית": "תן פריט", "عربي": "إعطاء المنتج" },
+  "post.success.title": { EN: "Item Shared!", "עברית": "!הפריט שותף", "عربي": "تمت مشاركة المنتج!" },
   "post.success.subtitle": {
-    EN: "Your item is now live and waiting for a buyer. We'll notify you when someone is interested.",
-    "עברית": "הפריט שלכם פעיל ומחכה לקונה. נעדכן אתכם כשמישהו יתעניין.",
-    "عربي": "منتجك الآن متاح وينتظر مشترياً. سنُعلمك عندما يهتم أحد.",
+    EN: "Your item is now live and ready to find a new home.",
+    "עברית": "הפריט שלכם פעיל ומחכה למצוא בית חדש.",
+    "عربي": "منتجك متاح الآن وجاهز للعثور على منزل جديد.",
   },
   "post.goToDashboard": { EN: "Go to Dashboard", "עברית": "עבור ללוח בקרה", "عربي": "الذهاب للوحة التحكم" },
   "post.viewListing": { EN: "View Listing", "עברית": "צפה במוצר", "عربي": "عرض المنتج" },
@@ -207,8 +208,8 @@ const translations = {
 
   // ──────────────── DASHBOARD ────────────────
   "dash.title": { EN: "Dashboard", "עברית": "לוח בקרה", "عربي": "لوحة التحكم" },
-  "dash.listNewItem": { EN: "List New Item", "עברית": "פרסם פריט חדש", "عربي": "أضف منتجاً جديداً" },
-  "dash.seller": { EN: "Seller", "עברית": "מוכר", "عربي": "بائع" },
+  "dash.listNewItem": { EN: "Give New Item", "עברית": "תן פריט חדש", "عربي": "أعطِ منتجًا جديدًا" },
+  "dash.seller": { EN: "Giver", "עברית": "נותן", "عربي": "المعطي" },
   "dash.activity": { EN: "Activity", "עברית": "פעילות", "عربي": "النشاط" },
   "dash.account": { EN: "Account", "עברית": "חשבון", "عربي": "الحساب" },
   "dash.profile": { EN: "Profile", "עברית": "פרופיל", "عربي": "الملف الشخصي" },
@@ -218,33 +219,33 @@ const translations = {
   // Tabs
   "dash.tab.listed": { EN: "Listed Items", "עברית": "פריטים מפורסמים", "عربي": "المنتجات المُدرجة" },
   "dash.tab.process": { EN: "In Process", "עברית": "בתהליך", "عربي": "قيد المعالجة" },
-  "dash.tab.sold": { EN: "Sold", "עברית": "נמכרו", "عربي": "مُباع" },
+  "dash.tab.sold": { EN: "Given", "עברית": "נמסרו", "عربي": "تم العطاء" },
   "dash.tab.watchlist": { EN: "Watchlist", "עברית": "מועדפים", "عربي": "قائمة المراقبة" },
   "dash.tab.purchased": { EN: "Purchased", "עברית": "נרכשו", "عربي": "المُشتريات" },
 
   // Stats
   "dash.stat.active": { EN: "Active Listings", "עברית": "מוצרים פעילים", "عربي": "منتجات نشطة" },
   "dash.stat.inProcess": { EN: "In Process", "עברית": "בתהליך", "عربي": "قيد المعالجة" },
-  "dash.stat.totalSold": { EN: "Total Sold", "עברית": "סה״כ נמכרו", "عربي": "إجمالي المُباع" },
+  "dash.stat.totalSold": { EN: "Total Given", "עברית": "סה״כ נמסרו", "عربي": "إجمالي المعطى" },
   "dash.stat.watchlist": { EN: "Watchlist", "עברית": "מועדפים", "عربي": "المراقبة" },
   "dash.stat.purchased": { EN: "Purchased", "עברית": "נרכשו", "عربي": "المُشتريات" },
 
   // Status badges
   "status.active": { EN: "Active", "עברית": "פעיל", "عربي": "نشط" },
   "status.inProcess": { EN: "In Process", "עברית": "בתהליך", "عربي": "قيد المعالجة" },
-  "status.sold": { EN: "Sold", "עברית": "נמכר", "عربي": "مُباع" },
+  "status.sold": { EN: "Given", "עברית": "נמסר", "عربي": "تم العطاء" },
   "status.saved": { EN: "Saved", "עברית": "שמור", "عربي": "محفوظ" },
   "status.waitingAdmin": { EN: "Waiting for Admin", "עברית": "ממתין למנהל", "عربي": "بانتظار المسؤول" },
   "status.purchased": { EN: "Purchased", "עברית": "נרכש", "عربي": "تم الشراء" },
 
   // Empty states
-  "dash.empty.listed": { EN: "No active listings", "עברית": "אין מוצרים פעילים", "عربي": "لا توجد منتجات نشطة" },
-  "dash.empty.listedSub": { EN: "Start selling by listing your first item.", "עברית": "התחילו למכור על ידי פרסום הפריט הראשון.", "عربي": "ابدأ البيع بإضافة أول منتج لك." },
-  "dash.empty.listItem": { EN: "List an Item", "עברית": "פרסם פריט", "عربي": "أضف منتجاً" },
+  "dash.empty.listed": { EN: "No active items", "עברית": "אין פריטים פעילים", "عربي": "لا توجد منتجات نشطة" },
+  "dash.empty.listedSub": { EN: "Start giving by sharing your first item.", "עברית": "התחילו לתת על ידי שיתוף הפריט הראשון.", "عربي": "ابدأ العطاء بمشاركة أول منتج لك." },
+  "dash.empty.listItem": { EN: "Give an Item", "עברית": "תן פריט", "عربي": "أعطِ منتجًا" },
   "dash.empty.process": { EN: "No items in process", "עברית": "אין פריטים בתהליך", "عربي": "لا توجد منتجات قيد المعالجة" },
   "dash.empty.processSub": { EN: "When a buyer requests an item, it will appear here.", "עברית": "כשקונה יבקש פריט, הוא יופיע כאן.", "عربي": "عندما يطلب مشترٍ منتجاً، سيظهر هنا." },
-  "dash.empty.sold": { EN: "No items sold yet", "עברית": "אין פריטים שנמכרו עדיין", "عربي": "لم يتم بيع أي منتجات بعد" },
-  "dash.empty.soldSub": { EN: "List your first item to get started.", "עברית": "פרסמו את הפריט הראשון כדי להתחיל.", "عربي": "أضف أول منتج لك للبدء." },
+  "dash.empty.sold": { EN: "No items given yet", "עברית": "אין פריטים שנמסרו עדיין", "عربي": "لا توجد منتجات معطاة بعد" },
+  "dash.empty.soldSub": { EN: "Give your first item to get started.", "עברית": "תנו את הפריט הראשון כדי להתחיל.", "عربي": "أعطِ أول منتج لك للبدء." },
   "dash.empty.watchlist": { EN: "Watchlist is empty", "עברית": "רשימת המועדפים ריקה", "عربي": "قائمة المراقبة فارغة" },
   "dash.empty.watchlistSub": { EN: "Browse items and save your favorites.", "עברית": "עיינו במוצרים ושמרו את המועדפים.", "عربي": "تصفح المنتجات واحفظ مفضلاتك." },
   "dash.empty.purchased": { EN: "No purchases yet", "עברית": "אין רכישות עדיין", "عربي": "لا توجد مشتريات بعد" },
@@ -263,7 +264,7 @@ const translations = {
   "item.sellingFor": { EN: "Selling for", "עברית": "נמכר ב", "عربي": "يُباع بـ" },
   "item.location": { EN: "Location", "עברית": "מיקום", "عربي": "الموقع" },
   "item.israel": { EN: "Israel", "עברית": "ישראל", "عربي": "إسرائيل" },
-  "item.contactSeller": { EN: "Contact Seller", "עברית": "צור קשר עם המוכר", "عربي": "تواصل مع البائع" },
+  "item.contactSeller": { EN: "Request Item", "עברית": "בקש פריט", "عربي": "طلب المنتج" },
   "item.dealInProgress": { EN: "Deal In Progress", "עברית": "עסקה בתהליך", "عربي": "الصفقة قيد التنفيذ" },
   "item.notAvailable": { EN: "Not Available", "עברית": "לא זמין", "عربي": "غير متوفر" },
   "item.guarantee.title": { EN: "Bestow Guarantee", "עברית": "אחריות השוק", "عربي": "ضمان السوق" },
@@ -272,7 +273,7 @@ const translations = {
     "עברית": "כל עסקה מנוטרת על ידי צוות הניהול שלנו כדי להבטיח בטיחות ואותנטיות. עמלה קטנה חלה רק לאחר העברה מוצלחת.",
     "عربي": "كل معاملة تتم مراقبتها من قبل فريق الإدارة لدينا لضمان الأمان والأصالة. عمولة صغيرة تُطبق فقط عند النقل الناجح.",
   },
-  "item.connectSecurely": { EN: "Connect Securely", "עברית": "התחברו בבטחה", "عربي": "تواصل بأمان" },
+  "item.connectSecurely": { EN: "Request This Item", "עברית": "בקש פריט זה", "عربي": "اطلب هذا المنتج" },
   "item.connectDesc": {
     EN: "Our admin team will connect you with the seller within 24 hours. A small fixed commission applies to ensure a safe transaction.",
     "עברית": "צוות הניהול שלנו יחבר אתכם עם המוכר תוך 24 שעות. עמלה קבועה קטנה חלה כדי להבטיח עסקה בטוחה.",

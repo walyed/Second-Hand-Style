@@ -445,45 +445,7 @@ export default function PostItem() {
                     )}
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="oprice"
-                        className="text-purple-900 font-bold"
-                      >
-                        {t('post.originalPrice')} (₪)
-                      </Label>
-                      <Input
-                        id="oprice"
-                        type="number"
-                        value={formData.originalPrice}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            originalPrice: e.target.value,
-                          })
-                        }
-                        className="rounded-xl bg-cream-50 border-purple-200 p-6 text-lg"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="sprice"
-                        className="text-purple-900 font-bold"
-                      >
-                        {t('post.sellingPrice')} (₪)
-                      </Label>
-                      <Input
-                        id="sprice"
-                        type="number"
-                        value={formData.sellPrice}
-                        onChange={(e) =>
-                          setFormData({ ...formData, sellPrice: e.target.value })
-                        }
-                        className="rounded-xl bg-cream-50 border-purple-500 ring-2 ring-purple-500/20 p-6 text-lg font-bold text-purple-900"
-                      />
-                    </div>
-                  </div>
+                  {/* PRICE INPUTS HIDDEN — free giving platform (price state/logic preserved) */}
                 </motion.div>
               )}
 
@@ -536,9 +498,7 @@ export default function PostItem() {
                         <div className="font-bold text-lg text-purple-900">
                           {formData.title || t('post.untitled')}
                         </div>
-                        <div className="text-purple-600 font-bold text-xl">
-                          ₪{formData.sellPrice || "0"}
-                        </div>
+                        {/* PRICE HIDDEN — free giving platform */}
                         <div className="text-sm text-purple-500">
                           {formData.category} &bull; {formData.condition} &bull;{" "}
                           {formData.city}

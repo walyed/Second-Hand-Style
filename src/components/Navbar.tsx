@@ -30,10 +30,9 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full glass border-b-0 border-purple-200/20 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <span className="font-serif text-3xl text-purple-900 font-bold group-hover:text-purple-600 transition-colors">
-            M<span className="text-gold">.</span>
+          <span className="font-serif text-2xl font-extrabold tracking-tight text-purple-900 group-hover:text-purple-600 transition-colors">
+            Bestow
           </span>
-          <span className="font-serif text-xl font-medium hidden sm:inline-block">Bestow</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

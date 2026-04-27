@@ -14,7 +14,7 @@ export function Footer() {
       
       <div className="max-w-7xl mx-auto px-6 relative z-10 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-2">
-          <h3 className="font-serif text-3xl font-bold mb-4">Marketplace<span className="text-gold">.</span></h3>
+          <h3 className="font-serif text-3xl font-bold mb-4">Bestow<span className="text-gold">.</span></h3>
           <p className="text-purple-200 max-w-sm mb-6">
             {t('footer.tagline')}
           </p>

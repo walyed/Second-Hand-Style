@@ -33,7 +33,7 @@ export function Navbar() {
           <span className="font-serif text-3xl text-purple-900 font-bold group-hover:text-purple-600 transition-colors">
             M<span className="text-gold">.</span>
           </span>
-          <span className="font-serif text-xl font-medium hidden sm:inline-block">Marketplace</span>
+          <span className="font-serif text-xl font-medium hidden sm:inline-block">Bestow</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8">

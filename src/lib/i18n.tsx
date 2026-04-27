@@ -46,7 +46,7 @@ const translations = {
 
   // How it works
   "home.how.badge": { EN: "How It Works", "עברית": "איך זה עובד", "عربي": "كيف يعمل" },
-  "home.how.title": { EN: "The Marketplace", "עברית": "דרך", "عربي": "طريقة" },
+  "home.how.title": { EN: "The Bestow", "עברית": "דרך", "عربي": "طريقة" },
   "home.how.titleAccent": { EN: "Way", "עברית": "השוק", "عربي": "السوق" },
   "home.how.subtitle": {
     EN: "Three simple steps to a simpler, more intentional way to buy and sell.",
@@ -258,7 +258,7 @@ const translations = {
   "item.contactSeller": { EN: "Contact Seller", "עברית": "צור קשר עם המוכר", "عربي": "تواصل مع البائع" },
   "item.dealInProgress": { EN: "Deal In Progress", "עברית": "עסקה בתהליך", "عربي": "الصفقة قيد التنفيذ" },
   "item.notAvailable": { EN: "Not Available", "עברית": "לא זמין", "عربي": "غير متوفر" },
-  "item.guarantee.title": { EN: "Marketplace Guarantee", "עברית": "אחריות השוק", "عربي": "ضمان السوق" },
+  "item.guarantee.title": { EN: "Bestow Guarantee", "עברית": "אחריות השוק", "عربي": "ضمان السوق" },
   "item.guarantee.desc": {
     EN: "Every transaction is monitored by our admin team to ensure safety and authenticity. A small commission applies only upon successful transfer.",
     "עברית": "כל עסקה מנוטרת על ידי צוות הניהול שלנו כדי להבטיח בטיחות ואותנטיות. עמלה קטנה חלה רק לאחר העברה מוצלחת.",
@@ -305,7 +305,7 @@ const translations = {
   "footer.contact": { EN: "Contact", "עברית": "צור קשר", "عربي": "اتصل بنا" },
   "footer.terms": { EN: "Terms of Service", "עברית": "תנאי שימוש", "عربي": "شروط الخدمة" },
   "footer.privacy": { EN: "Privacy Policy", "עברית": "מדיניות פרטיות", "عربي": "سياسة الخصوصية" },
-  "footer.rights": { EN: "Marketplace. All rights reserved.", "עברית": "Marketplace. כל הזכויות שמורות.", "عربي": "Marketplace. جميع الحقوق محفوظة." },
+  "footer.rights": { EN: "Bestow. All rights reserved.", "עברית": "Bestow. כל הזכויות שמורות.", "عربي": "Bestow. جميع الحقوق محفوظة." },
 } as const;
 
 type TranslationKey = keyof typeof translations;

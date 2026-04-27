@@ -3,9 +3,9 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Marketplace",
+  title: "Bestow",
   description:
-    "A premium second-hand marketplace. Buy less. Choose well.",
+    "Bestow — a premium second-hand marketplace. Buy less. Choose well.",
   icons: { icon: "/favicon.svg" },
 };
 

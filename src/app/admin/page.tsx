@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import {
@@ -16,6 +17,8 @@ import {
   Trash2,
   Plus,
   X,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -433,8 +436,10 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
     category: "Furniture",
     condition: "New",
     city: "Tel Aviv",
-    imageUrl: "",
   });
+  const [addImages, setAddImages] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
 
@@ -452,17 +457,36 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
         city: addFormData.city,
         originalPrice: 0,
         sellPrice: 0,
-        images: addFormData.imageUrl.trim()
-          ? [addFormData.imageUrl.trim()]
+        images: addImages.length > 0
+          ? addImages
           : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800"],
       });
       setShowAddForm(false);
-      setAddFormData({ title: "", description: "", category: "Furniture", condition: "New", city: "Tel Aviv", imageUrl: "" });
+      setAddFormData({ title: "", description: "", category: "Furniture", condition: "New", city: "Tel Aviv" });
+      setAddImages([]);
       onStatusChange();
     } catch (err: any) {
       setAddError(err.message || "Failed to create item");
     }
     setAddLoading(false);
+  };
+
+  const handleImageFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingImage(true);
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) continue;
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from("listing-images").upload(fileName, file, { upsert: false });
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
+        setAddImages((p) => [...p, urlData.publicUrl]);
+      } else {
+        setAddImages((p) => [...p, URL.createObjectURL(file)]);
+      }
+    }
+    setUploadingImage(false);
   };
 
   const handleStatusChange = async (id: string, status: string) => {
@@ -594,14 +618,24 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-purple-700">Image URL (optional)</label>
-                <input
-                  type="url"
-                  value={addFormData.imageUrl}
-                  onChange={(e) => setAddFormData((p) => ({ ...p, imageUrl: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
-                />
+                <label className="text-sm font-medium text-purple-700">Photos</label>
+                <div className="flex flex-wrap gap-2">
+                  {addImages.map((img, idx) => (
+                    <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden border border-purple-100">
+                      <img src={img} className="w-full h-full object-cover" alt="" />
+                      <button type="button" onClick={() => setAddImages((p) => p.filter((_, i) => i !== idx))}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-black/60 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600">
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage}
+                    className="w-16 h-16 border-2 border-dashed border-purple-200 rounded-lg flex flex-col items-center justify-center text-purple-400 hover:border-purple-400 hover:text-purple-600 transition-colors disabled:opacity-50">
+                    {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <span className="text-xs mt-0.5">Add</span>
+                  </button>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleImageFiles(e.target.files)} />
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -633,7 +667,6 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
               <th className="p-4 font-medium">Title</th>
               <th className="p-4 font-medium">Category</th>
               <th className="p-4 font-medium">Status</th>
-              <th className="p-4 font-medium">Price</th>
               <th className="p-4 font-medium">Actions</th>
             </tr>
           </thead>
@@ -656,7 +689,6 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                     {item.status === "in_process" ? "In Process" : item.status?.charAt(0).toUpperCase() + item.status?.slice(1)}
                   </Badge>
                 </td>
-                <td className="p-4 font-mono font-bold text-purple-700">₪{item.sellPrice}</td>
                 <td className="p-4">
                   <div className="flex items-center gap-2">
                     <select

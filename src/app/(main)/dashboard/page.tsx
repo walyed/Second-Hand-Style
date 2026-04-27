@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,11 +15,196 @@ import {
   Settings,
   LogOut,
   Loader2,
+  Pencil,
+  X,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { api, type Listing } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useTranslation } from "@/lib/i18n";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+
+/* ─── Edit Modal ─── */
+function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: () => void; onSaved: () => void }) {
+  const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [form, setForm] = useState({
+    title: listing.title,
+    description: listing.description || "",
+    category: listing.category,
+    condition: listing.condition,
+    city: listing.city || "",
+    images: listing.images as string[],
+  });
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) continue;
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await supabase.storage.from("listing-images").upload(fileName, file, { upsert: false });
+      if (!error && data) {
+        const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
+        newUrls.push(urlData.publicUrl);
+      } else {
+        newUrls.push(URL.createObjectURL(file));
+      }
+    }
+    setForm((p) => ({ ...p, images: [...p.images, ...newUrls] }));
+    setUploading(false);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim()) { toast.error("Title is required"); return; }
+    setSaving(true);
+    try {
+      await api.updateListing(listing.id, {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        category: form.category,
+        condition: form.condition,
+        city: form.city || undefined,
+        images: form.images,
+        originalPrice: 0,
+        sellPrice: 0,
+      });
+      toast.success("Item updated!");
+      onSaved();
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save");
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-6 border-b border-purple-100">
+          <h2 className="font-serif text-xl font-bold text-purple-900">Edit Item</h2>
+          <button onClick={onClose} className="p-2 rounded-xl hover:bg-purple-50 text-purple-400 hover:text-purple-700 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSave} className="p-6 space-y-5">
+          {/* Images */}
+          <div>
+            <Label className="text-purple-900 font-bold mb-2 block">Photos</Label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {form.images.map((img, idx) => (
+                <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-purple-100">
+                  <img src={img} className="w-full h-full object-cover" alt="" />
+                  <button
+                    type="button"
+                    onClick={() => setForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
+                    className="absolute top-1 right-1 w-5 h-5 bg-black/60 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-20 h-20 border-2 border-dashed border-purple-200 rounded-xl flex flex-col items-center justify-center text-purple-400 hover:border-purple-400 hover:text-purple-600 transition-colors disabled:opacity-50"
+              >
+                {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                <span className="text-xs mt-1">Add</span>
+              </button>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+          </div>
+
+          {/* Title */}
+          <div className="space-y-1">
+            <Label className="text-purple-900 font-bold">Title *</Label>
+            <input
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Item title"
+              className="w-full border border-purple-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ring-purple-400"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-1">
+            <Label className="text-purple-900 font-bold">Description</Label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              rows={3}
+              className="w-full border border-purple-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ring-purple-400 resize-none"
+            />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-1">
+            <Label className="text-purple-900 font-bold">{t('post.categoryLabel')}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {["Furniture", "Electronics", "Kitchen", "Other"].map((cat) => (
+                <button key={cat} type="button" onClick={() => setForm((p) => ({ ...p, category: cat }))}
+                  className={`p-3 rounded-xl border text-sm text-center transition-all ${form.category === cat ? "bg-purple-100 border-purple-500 text-purple-900 font-bold" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}>
+                  {t(`cat.${cat}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Condition */}
+          <div className="space-y-1">
+            <Label className="text-purple-900 font-bold">{t('post.conditionLabel')}</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {["New", "Used", "Refurbished"].map((cond) => (
+                <button key={cond} type="button" onClick={() => setForm((p) => ({ ...p, condition: cond }))}
+                  className={`p-3 rounded-xl border text-sm text-center transition-all ${form.condition === cond ? "bg-purple-100 border-purple-500 text-purple-900 font-bold" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}>
+                  {t(`cond.${cond}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* City */}
+          <div className="space-y-1">
+            <Label className="text-purple-900 font-bold">{t('post.cityLabel')}</Label>
+            <input
+              list="edit-city-options"
+              value={form.city}
+              onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+              placeholder={t('post.selectCity')}
+              className="w-full border border-purple-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ring-purple-400"
+            />
+            <datalist id="edit-city-options">
+              <option value="Tel Aviv" /><option value="Jerusalem" /><option value="Haifa" /><option value="Eilat" />
+            </datalist>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 rounded-full border-purple-200">Cancel</Button>
+            <Button type="submit" disabled={saving || uploading} className="flex-1 rounded-full bg-purple-600 hover:bg-purple-700 text-white">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -30,6 +215,7 @@ export default function Dashboard() {
   const [watchlist, setWatchlist] = useState<Listing[]>([]);
   const [purchases, setPurchases] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingListing, setEditingListing] = useState<Listing | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -37,6 +223,10 @@ export default function Dashboard() {
       router.replace("/login");
       return;
     }
+    loadData();
+  }, [profile, authLoading, router]);
+
+  function loadData() {
     Promise.all([
         api.getMyListings().catch(() => []),
         api.getWatchlist().catch(() => []),
@@ -47,7 +237,7 @@ export default function Dashboard() {
         setPurchases(purch);
         setLoading(false);
       });
-  }, [profile, authLoading, router]);
+  }
 
   // Show loading spinner while auth is resolving
   if (authLoading || (!profile && loading)) {
@@ -96,7 +286,16 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-cream-50 flex flex-col md:flex-row">
-      {/* Desktop Sidebar */}
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingListing && (
+          <EditModal
+            listing={editingListing}
+            onClose={() => setEditingListing(null)}
+            onSaved={() => { setLoading(true); loadData(); }}
+          />
+        )}
+      </AnimatePresence>
       <aside className="hidden md:flex w-64 bg-purple-900 text-cream-50 flex-col py-8 px-6 border-r border-purple-800 shrink-0">
         <div className="flex items-center gap-4 mb-12">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gold to-yellow-300 flex items-center justify-center text-purple-900 font-bold text-xl shadow-lg">
@@ -224,9 +423,7 @@ export default function Dashboard() {
                         <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
                           {listing.title}
                         </h3>
-                        <div className="text-purple-600 font-bold mb-2">
-                          ₪{listing.sellPrice}
-                        </div>
+                        <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                         <div className="flex gap-2">
                           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
                             {t('status.active')}
@@ -243,6 +440,9 @@ export default function Dashboard() {
                             {t('dash.view')}
                           </Button>
                         </Link>
+                        <Button size="sm" variant="outline" className="text-xs border-purple-200 text-purple-700" onClick={() => setEditingListing(listing)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Edit
+                        </Button>
                       </div>
                     </div>
                     ))
@@ -283,9 +483,7 @@ export default function Dashboard() {
                           <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
                             {listing.title}
                           </h3>
-                          <div className="text-purple-600 font-bold mb-2">
-                            ₪{listing.sellPrice}
-                          </div>
+                          <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                           <div className="flex gap-2">
                             <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">
                               {t('status.inProcess')}
@@ -326,9 +524,7 @@ export default function Dashboard() {
                           <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
                             {listing.title}
                           </h3>
-                          <div className="text-purple-600 font-bold mb-2">
-                            ₪{listing.sellPrice}
-                          </div>
+                          <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                           <div className="flex gap-2">
                             <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">
                             {t('status.sold')}
@@ -369,9 +565,7 @@ export default function Dashboard() {
                         <h3 className="font-bold text-purple-900 text-lg line-clamp-1">
                           {listing.title}
                         </h3>
-                        <div className="text-purple-600 font-bold mb-2">
-                          ₪{listing.sellPrice}
-                        </div>
+                        <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                         <div className="text-xs text-purple-400 flex items-center">
                           <Heart className="w-3 h-3 mr-1 fill-purple-400" />{" "}
                           {t('status.saved')}
@@ -424,7 +618,7 @@ export default function Dashboard() {
                               </div>
                               <div className="flex-1 flex flex-col justify-center">
                                 <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
-                                <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                                <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                                 <div className="flex gap-2">
                                   <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-md font-medium">{t('status.waitingAdmin')}</span>
                                 </div>
@@ -451,7 +645,7 @@ export default function Dashboard() {
                               </div>
                               <div className="flex-1 flex flex-col justify-center">
                                 <h3 className="font-bold text-purple-900 text-lg line-clamp-1">{listing.title}</h3>
-                                <div className="text-purple-600 font-bold mb-2">₪{listing.sellPrice}</div>
+                                <div className="text-sm text-purple-500 mb-2">{listing.category} · {listing.city}</div>
                                 <div className="flex gap-2">
                                   <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-md font-medium">{t('status.purchased')}</span>
                                 </div>

@@ -258,6 +258,33 @@
   @apply backdrop-blur-md bg-white/60 border border-purple-200/40;
 }
 
+/* ── Sonner toast overrides ───────────────────────────────── */
+.sonner-bestow {
+  font-family: var(--font-sans), DM Sans, sans-serif !important;
+}
+.sonner-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #3b0764 !important;
+}
+.sonner-success {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+  color: #14532d !important;
+}
+.sonner-success .sonner-title {
+  color: #14532d !important;
+}
+.sonner-error {
+  background: #fff1f2 !important;
+  border-color: #fda4af !important;
+  color: #881337 !important;
+}
+.sonner-error .sonner-title {
+  color: #881337 !important;
+}
+/* ─────────────────────────────────────────────────────────── */
+
 /* Noise overlay utility */
 .noise-overlay::before {
   content: "";

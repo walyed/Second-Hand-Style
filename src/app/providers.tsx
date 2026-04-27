@@ -22,24 +22,29 @@ export function Providers({ children }: { children: React.ReactNode }) {
             {children}
             <Toaster
               position="top-center"
-              richColors
-              expand
+              offset="45vh"
+              expand={false}
               closeButton
+              duration={3500}
               toastOptions={{
                 style: {
-                  background: "white",
-                  border: "1px solid #e9d5ff",
-                  borderRadius: "16px",
-                  padding: "16px 20px",
+                  background: "#ffffff",
+                  border: "1.5px solid #ede9fe",
+                  borderRadius: "20px",
+                  padding: "18px 24px",
                   fontSize: "15px",
-                  fontWeight: 500,
+                  fontWeight: 600,
                   color: "#3b0764",
-                  boxShadow: "0 20px 60px -10px rgba(107,33,168,0.25), 0 4px 20px -4px rgba(0,0,0,0.1)",
-                  minWidth: "320px",
+                  boxShadow: "0 25px 60px -8px rgba(107,33,168,0.30), 0 8px 24px -4px rgba(0,0,0,0.12)",
+                  minWidth: "340px",
+                  maxWidth: "440px",
+                  transform: "translateY(-50%)",
                 },
                 classNames: {
-                  success: "!border-green-200 !bg-green-50",
-                  error: "!border-red-200 !bg-red-50",
+                  toast: "sonner-bestow",
+                  success: "sonner-success",
+                  error: "sonner-error",
+                  title: "sonner-title",
                 },
               }}
             />

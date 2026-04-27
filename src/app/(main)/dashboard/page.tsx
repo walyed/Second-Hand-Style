@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { api, type Listing } from "@/lib/api";
+import { api, type Listing, type Category } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
@@ -31,10 +31,17 @@ import { toast } from "sonner";
 function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: () => void; onSaved: () => void }) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    title: string;
+    description: string;
+    category: Category;
+    condition: string;
+    city: string;
+    images: string[];
+  }>({
     title: listing.title,
     description: listing.description || "",
-    category: listing.category,
+    category: listing.category as Category,
     condition: listing.condition,
     city: listing.city || "",
     images: listing.images as string[],
@@ -158,7 +165,7 @@ function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: (
             <Label className="text-purple-900 font-bold">{t('post.categoryLabel')}</Label>
             <div className="grid grid-cols-2 gap-2">
               {["Furniture", "Electronics", "Kitchen", "Other"].map((cat) => (
-                <button key={cat} type="button" onClick={() => setForm((p) => ({ ...p, category: cat }))}
+                <button key={cat} type="button" onClick={() => setForm((p) => ({ ...p, category: cat as Category }))}
                   className={`p-3 rounded-xl border text-sm text-center transition-all ${form.category === cat ? "bg-purple-100 border-purple-500 text-purple-900 font-bold" : "bg-white border-purple-100 text-purple-700 hover:border-purple-300"}`}>
                   {t(`cat.${cat}`)}
                 </button>

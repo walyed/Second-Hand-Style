@@ -24,6 +24,9 @@ const translations = {
     "עברית": "נתינה שהופכת לדרך חיים.",
     "عربي": "العطاء يصبح أسلوب حياة.",
   },
+  "home.hero.subtitleBefore": { EN: "Where ", "עברית": "נ", "عربي": "ال" },
+  "home.hero.subtitleAccent": { EN: "giving", "עברית": "תינה", "عربي": "عطاء" },
+  "home.hero.subtitleAfter": { EN: " becomes a way of life.", "עברית": " שהופכת לדרך חיים.", "عربي": " يصبح أسلوب حياة." },
   "home.hero.desc": {
     EN: "Passing on furniture and items between people — with ease and warmth",
     "עברית": "מעבירים הלאה חפצים ורהיטים בין אנשים — בקלות ובחום",

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import { useTranslation } from "@/lib/i18n";
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || null;
   const { signIn, profile, loading: authLoading } = useAuth();
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
@@ -26,9 +28,9 @@ export default function Login() {
   // Redirect when profile becomes available after login
   useEffect(() => {
     if (profile && !authLoading) {
-      router.replace(profile.isAdmin ? "/admin" : "/dashboard");
+      router.replace(redirectTo ?? (profile.isAdmin ? "/admin" : "/dashboard"));
     }
-  }, [profile, authLoading, router]);
+  }, [profile, authLoading, router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

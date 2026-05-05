@@ -25,6 +25,18 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 
+const ISRAEL_CITIES = [
+  "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva",
+  "Ashdod", "Netanya", "Beer Sheva", "Holon", "Bnei Brak",
+  "Ramat Gan", "Rehovot", "Bat Yam", "Ashkelon", "Herzliya",
+  "Kfar Saba", "Modi'in", "Ra'anana", "Lod", "Ramla",
+  "Hadera", "Eilat", "Acre", "Nahariya", "Tiberias",
+  "Nazareth", "Safed", "Dimona", "Kiryat Gat", "Kiryat Shmona",
+  "Nablus Road Area", "Beit Shemesh", "Givatayim", "Ness Ziona",
+  "Or Yehuda", "Kiryat Motzkin", "Kiryat Ata", "Kiryat Bialik",
+  "Yehud", "Rosh HaAyin",
+];
+
 export default function PostItem() {
   const router = useRouter();
   const { profile, loading: authLoading } = useAuth();
@@ -66,14 +78,8 @@ export default function PostItem() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile) {
-      toast.error(t('post.loginRequired'));
-      router.push("/login");
-      return;
-    }
-    const validCities = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
-    if (!formData.city || !validCities.includes(formData.city)) {
-      toast.error("Please select a valid city from the list");
+    if (!formData.city.trim()) {
+      toast.error("Please enter your city");
       return;
     }
     setIsSubmitting(true);
@@ -154,6 +160,48 @@ export default function PostItem() {
       handleFiles(e.dataTransfer.files);
     }
   };
+
+  // Show loading while auth resolves
+  if (authLoading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Auth gate — must be signed in before filling the form
+  if (!profile) {
+    return (
+      <div className="min-h-[80vh] flex flex-col items-center justify-center bg-cream-50 p-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-xl border border-purple-100 p-10 max-w-md w-full space-y-6"
+        >
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+            <Upload className="w-8 h-8 text-purple-600" />
+          </div>
+          <div>
+            <h2 className="font-serif text-2xl font-bold text-purple-900 mb-2">Sign in to give an item</h2>
+            <p className="text-purple-500 text-sm">You need an account to list items on Bestow. It only takes a moment.</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Link href={`/login?redirect=/post`}>
+              <button className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-semibold transition-colors">
+                Sign In
+              </button>
+            </Link>
+            <Link href={`/register?redirect=/post`}>
+              <button className="w-full py-3 border border-purple-200 hover:bg-purple-50 text-purple-700 rounded-full font-semibold transition-colors">
+                Create Account
+              </button>
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (
@@ -474,10 +522,9 @@ export default function PostItem() {
                         className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
                       />
                       <datalist id="post-city-options">
-                        <option value="Tel Aviv" />
-                        <option value="Jerusalem" />
-                        <option value="Haifa" />
-                        <option value="Eilat" />
+                        {ISRAEL_CITIES.map((city) => (
+                          <option key={city} value={city} />
+                        ))}
                       </datalist>
                     </div>
                   </div>

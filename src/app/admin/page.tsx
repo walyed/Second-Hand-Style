@@ -438,6 +438,18 @@ function DashboardView({ inProcessListings, soldListings, stats, recentUsers, on
   );
 }
 
+/* ─── Israel cities ─── */
+const ISRAEL_CITIES = [
+  "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva",
+  "Ashdod", "Netanya", "Beer Sheva", "Holon", "Bnei Brak",
+  "Ramat Gan", "Rehovot", "Bat Yam", "Ashkelon", "Herzliya",
+  "Kfar Saba", "Modi'in", "Ra'anana", "Lod", "Ramla",
+  "Hadera", "Eilat", "Acre", "Nahariya", "Tiberias",
+  "Nazareth", "Safed", "Dimona", "Kiryat Gat", "Kiryat Shmona",
+  "Beit Shemesh", "Givatayim", "Ness Ziona", "Or Yehuda",
+  "Kiryat Motzkin", "Kiryat Ata", "Kiryat Bialik", "Yehud", "Rosh HaAyin",
+];
+
 /* ─── Items Tab ─── */
 function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChange: () => void }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -460,6 +472,7 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [editUploadingImage, setEditUploadingImage] = useState(false);
 
   const openEdit = (item: any) => {
     setEditingItem(item);
@@ -469,6 +482,7 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
 
   const handleEditImageFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    setEditUploadingImage(true);
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) continue;
       const ext = file.name.split(".").pop();
@@ -478,9 +492,10 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
         const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
         setEditImages((p) => [...p, urlData.publicUrl]);
       } else {
-        setEditImages((p) => [...p, URL.createObjectURL(file)]);
+        toast.error(`Image upload failed: ${error?.message || "Unknown error"}`);
       }
     }
+    setEditUploadingImage(false);
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -547,7 +562,7 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
         const { data: urlData } = supabase.storage.from("listing-images").getPublicUrl(data.path);
         setAddImages((p) => [...p, urlData.publicUrl]);
       } else {
-        setAddImages((p) => [...p, URL.createObjectURL(file)]);
+        toast.error(`Image upload failed: ${error?.message || "Unknown error"}`);
       }
     }
     setUploadingImage(false);
@@ -663,9 +678,10 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                       </button>
                     </div>
                   ))}
-                  <button type="button" onClick={() => editFileRef.current?.click()}
-                    className="w-16 h-16 border-2 border-dashed border-purple-200 rounded-lg flex flex-col items-center justify-center text-purple-400 hover:border-purple-400 hover:text-purple-600 transition-colors">
-                    <Upload className="w-4 h-4" /><span className="text-xs mt-0.5">Add</span>
+                  <button type="button" onClick={() => editFileRef.current?.click()} disabled={editUploadingImage}
+                    className="w-16 h-16 border-2 border-dashed border-purple-200 rounded-lg flex flex-col items-center justify-center text-purple-400 hover:border-purple-400 hover:text-purple-600 transition-colors disabled:opacity-50">
+                    {editUploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <span className="text-xs mt-0.5">Add</span>
                   </button>
                 </div>
                 <input ref={editFileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleEditImageFiles(e.target.files)} />
@@ -698,10 +714,16 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
                 </div>
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-purple-700">City</label>
-                  <select value={editFormData.city} onChange={(e) => setEditFormData((p) => ({ ...p, city: e.target.value }))}
-                    className="w-full border border-purple-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white">
-                    {["Tel Aviv", "Jerusalem", "Haifa", "Eilat"].map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <input
+                    list="admin-edit-cities"
+                    value={editFormData.city}
+                    onChange={(e) => setEditFormData((p) => ({ ...p, city: e.target.value }))}
+                    placeholder="Select or type city"
+                    className="w-full border border-purple-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
+                  />
+                  <datalist id="admin-edit-cities">
+                    {ISRAEL_CITIES.map((c) => <option key={c} value={c} />)}
+                  </datalist>
                 </div>
               </div>
 
@@ -799,15 +821,16 @@ function ItemsView({ listings, onStatusChange }: { listings: any[]; onStatusChan
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-purple-700">City</label>
-                <select
+                <input
+                  list="admin-add-cities"
                   value={addFormData.city}
                   onChange={(e) => setAddFormData((p) => ({ ...p, city: e.target.value }))}
-                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400 bg-white"
-                >
-                  {["Tel Aviv", "Jerusalem", "Haifa", "Eilat"].map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  placeholder="Select or type city"
+                  className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 ring-purple-400"
+                />
+                <datalist id="admin-add-cities">
+                  {ISRAEL_CITIES.map((c) => <option key={c} value={c} />)}
+                </datalist>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-purple-700">Photos</label>

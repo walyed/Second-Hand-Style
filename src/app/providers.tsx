@@ -4,7 +4,6 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { CursorEffect } from "@/components/CursorEffect";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { AuthProvider } from "@/lib/auth-context";
 import { LanguageProvider } from "@/lib/i18n";
@@ -17,7 +16,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <LanguageProvider>
           <TooltipProvider>
-            <CursorEffect />
             <ScrollProgress />
             {children}
             <Toaster

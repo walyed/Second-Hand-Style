@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -13,7 +13,15 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
 
-export default function Register() {
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <Register />
+    </Suspense>
+  );
+}
+
+function Register() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || null;

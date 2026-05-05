@@ -197,7 +197,9 @@ function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: (
               className="w-full border border-purple-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ring-purple-400"
             />
             <datalist id="edit-city-options">
-              <option value="Tel Aviv" /><option value="Jerusalem" /><option value="Haifa" /><option value="Eilat" />
+              {["Tel Aviv","Jerusalem","Haifa","Rishon LeZion","Petah Tikva","Ashdod","Netanya","Beer Sheva","Holon","Bnei Brak","Ramat Gan","Rehovot","Bat Yam","Ashkelon","Herzliya","Kfar Saba","Modi'in","Ra'anana","Lod","Ramla","Hadera","Eilat","Acre","Nahariya","Tiberias","Nazareth","Safed","Dimona","Kiryat Gat","Beit Shemesh","Givatayim","Ness Ziona","Or Yehuda","Rosh HaAyin"].map((c) => (
+                <option key={c} value={c} />
+              ))}
             </datalist>
           </div>
 

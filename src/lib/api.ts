@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 
 export type Category = "Furniture" | "Electronics" | "Kitchen" | "Clothing" | "Other";
 export type Condition = "New" | "Used" | "Refurbished" | "Special Deal";
-export type City = "Tel Aviv" | "Jerusalem" | "Haifa" | "Eilat";
+export type City = string;
 
 export interface Seller {
   id: string;

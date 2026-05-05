@@ -31,7 +31,15 @@ export default function Browse() {
 
   const categories: Category[] = ["Furniture", "Electronics", "Kitchen", "Other"];
   const conditions: Condition[] = ["New", "Used", "Refurbished", "Special Deal"];
-  const cities = ["Tel Aviv", "Jerusalem", "Haifa", "Eilat"];
+  const cities = [
+    "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva",
+    "Ashdod", "Netanya", "Beer Sheva", "Holon", "Bnei Brak",
+    "Ramat Gan", "Rehovot", "Bat Yam", "Ashkelon", "Herzliya",
+    "Kfar Saba", "Modi'in", "Ra'anana", "Lod", "Ramla",
+    "Hadera", "Eilat", "Acre", "Nahariya", "Tiberias",
+    "Nazareth", "Safed", "Dimona", "Kiryat Gat", "Beit Shemesh",
+    "Givatayim", "Ness Ziona", "Or Yehuda", "Rosh HaAyin",
+  ];
 
   // Auto-detect user city from browser geolocation (Israel only)
   useEffect(() => {

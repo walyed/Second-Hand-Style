@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   Plus,
   Loader2,
+  ChevronDown,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,111 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useTranslation } from "@/lib/i18n";
 
+/* ─── Mobile-safe city picker ─────────────────────────────── */
+function CityPicker({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (city: string) => void;
+  placeholder: string;
+}) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const filtered = query.trim()
+    ? ISRAEL_CITIES.filter((c) => c.toLowerCase().includes(query.toLowerCase()))
+    : ISRAEL_CITIES;
+
+  // Sync external value → local query
+  useEffect(() => { setQuery(value); }, [value]);
+
+  // Close when tapping outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [open]);
+
+  const select = (city: string) => {
+    onChange(city);
+    setQuery(city);
+    setOpen(false);
+    inputRef.current?.blur();
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400 pointer-events-none" />
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="search"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="words"
+          spellCheck={false}
+          value={query}
+          placeholder={placeholder}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          className="w-full rounded-xl bg-white border border-purple-200 pl-11 pr-11 py-4 text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); inputRef.current?.focus(); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-purple-400"
+        >
+          <ChevronDown className={`w-5 h-5 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+
+      {open && filtered.length > 0 && (
+        <ul
+          ref={listRef}
+          className="absolute left-0 right-0 top-[calc(100%+6px)] bg-white border border-purple-200 rounded-2xl shadow-xl overflow-y-auto overscroll-contain"
+          style={{ maxHeight: "min(260px, 40vh)", zIndex: 9999 }}
+        >
+          {filtered.map((city) => (
+            <li
+              key={city}
+              // Use onMouseDown + onTouchEnd so iOS blur doesn't eat the tap
+              onMouseDown={(e) => { e.preventDefault(); select(city); }}
+              onTouchEnd={(e) => { e.preventDefault(); select(city); }}
+              className={`px-5 py-3.5 text-base cursor-pointer select-none active:bg-purple-100 ${
+                city === value
+                  ? "bg-purple-50 font-semibold text-purple-900"
+                  : "text-purple-800 hover:bg-purple-50"
+              }`}
+            >
+              {city}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 const ISRAEL_CITIES = [
   "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva",
   "Ashdod", "Netanya", "Beer Sheva", "Holon", "Bnei Brak",
@@ -32,7 +139,7 @@ const ISRAEL_CITIES = [
   "Kfar Saba", "Modi'in", "Ra'anana", "Lod", "Ramla",
   "Hadera", "Eilat", "Acre", "Nahariya", "Tiberias",
   "Nazareth", "Safed", "Dimona", "Kiryat Gat", "Kiryat Shmona",
-  "Nablus Road Area", "Beit Shemesh", "Givatayim", "Ness Ziona",
+  "Beit Shemesh", "Givatayim", "Ness Ziona",
   "Or Yehuda", "Kiryat Motzkin", "Kiryat Ata", "Kiryat Bialik",
   "Yehud", "Rosh HaAyin",
 ];
@@ -513,20 +620,11 @@ export default function PostItem() {
 
                   <div className="space-y-2">
                     <Label className="text-purple-900 font-bold">{t('post.cityLabel')}</Label>
-                    <div className="relative">
-                      <input
-                        list="post-city-options"
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        placeholder={t('post.selectCity')}
-                        className="w-full rounded-xl bg-white border border-purple-200 p-4 text-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
-                      />
-                      <datalist id="post-city-options">
-                        {ISRAEL_CITIES.map((city) => (
-                          <option key={city} value={city} />
-                        ))}
-                      </datalist>
-                    </div>
+                    <CityPicker
+                      value={formData.city}
+                      onChange={(city) => setFormData({ ...formData, city })}
+                      placeholder={t('post.selectCity')}
+                    />
                   </div>
 
                   <div className="mt-8 bg-purple-50 rounded-2xl p-6 border border-purple-100">

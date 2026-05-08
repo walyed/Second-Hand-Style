@@ -440,14 +440,28 @@ function DashboardView({ inProcessListings, soldListings, stats, recentUsers, on
 
 /* ─── Israel cities ─── */
 const ISRAEL_CITIES = [
-  "Tel Aviv", "Jerusalem", "Haifa", "Rishon LeZion", "Petah Tikva",
-  "Ashdod", "Netanya", "Beer Sheva", "Holon", "Bnei Brak",
-  "Ramat Gan", "Rehovot", "Bat Yam", "Ashkelon", "Herzliya",
-  "Kfar Saba", "Modi'in", "Ra'anana", "Lod", "Ramla",
-  "Hadera", "Eilat", "Acre", "Nahariya", "Tiberias",
-  "Nazareth", "Safed", "Dimona", "Kiryat Gat", "Kiryat Shmona",
-  "Beit Shemesh", "Givatayim", "Ness Ziona", "Or Yehuda",
-  "Kiryat Motzkin", "Kiryat Ata", "Kiryat Bialik", "Yehud", "Rosh HaAyin",
+  "Acre", "Afula", "Arad", "Arraba", "Ashdod", "Ashkelon",
+  "Baqa al-Gharbiyye", "Bat Yam", "Be'er Ya'akov", "Beer Sheva",
+  "Beit She'an", "Beit Shemesh", "Bnei Brak",
+  "Dimona", "Eilat", "El'ad",
+  "Ganei Tikva", "Giv'at Shmuel", "Givatayim",
+  "Hadera", "Haifa", "Harish", "Herzliya", "Hod HaSharon", "Holon",
+  "Jerusalem",
+  "Kafr Qara", "Kafr Qasim", "Karmiel", "Kfar Saba", "Kfar Yona",
+  "Kiryat Ata", "Kiryat Bialik", "Kiryat Gat", "Kiryat Malakhi",
+  "Kiryat Motzkin", "Kiryat Ono", "Kiryat Shmona", "Kiryat Yam",
+  "Lod",
+  "Ma'alot-Tarshiha", "Maghar", "Migdal HaEmek", "Modi'in-Maccabim-Re'ut",
+  "Nahariya", "Nazareth", "Nesher", "Ness Ziona", "Netanya", "Netivot",
+  "Nof HaGalil",
+  "Ofakim", "Or Akiva", "Or Yehuda",
+  "Petah Tikva",
+  "Qalansawe", "Ra'anana", "Rahat", "Ramat Gan", "Ramat HaSharon",
+  "Ramla", "Rehovot", "Rishon LeZion", "Rosh HaAyin",
+  "Safed", "Sakhnin", "Sderot", "Shefa-Amr",
+  "Tamra", "Tayibe", "Tel Aviv", "Tiberias", "Tira", "Tirat Carmel",
+  "Umm al-Fahm",
+  "Yavne", "Yehud-Monosson", "Yokneam Illit",
 ];
 
 /* ─── Items Tab ─── */

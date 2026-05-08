@@ -197,7 +197,7 @@ function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: (
               className="w-full border border-purple-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 ring-purple-400"
             />
             <datalist id="edit-city-options">
-              {["Tel Aviv","Jerusalem","Haifa","Rishon LeZion","Petah Tikva","Ashdod","Netanya","Beer Sheva","Holon","Bnei Brak","Ramat Gan","Rehovot","Bat Yam","Ashkelon","Herzliya","Kfar Saba","Modi'in","Ra'anana","Lod","Ramla","Hadera","Eilat","Acre","Nahariya","Tiberias","Nazareth","Safed","Dimona","Kiryat Gat","Beit Shemesh","Givatayim","Ness Ziona","Or Yehuda","Rosh HaAyin"].map((c) => (
+              {["Acre","Afula","Arad","Arraba","Ashdod","Ashkelon","Baqa al-Gharbiyye","Bat Yam","Be'er Ya'akov","Beer Sheva","Beit She'an","Beit Shemesh","Bnei Brak","Dimona","Eilat","El'ad","Ganei Tikva","Giv'at Shmuel","Givatayim","Hadera","Haifa","Harish","Herzliya","Hod HaSharon","Holon","Jerusalem","Kafr Qara","Kafr Qasim","Karmiel","Kfar Saba","Kfar Yona","Kiryat Ata","Kiryat Bialik","Kiryat Gat","Kiryat Malakhi","Kiryat Motzkin","Kiryat Ono","Kiryat Shmona","Kiryat Yam","Lod","Ma'alot-Tarshiha","Maghar","Migdal HaEmek","Modi'in-Maccabim-Re'ut","Nahariya","Nazareth","Nesher","Ness Ziona","Netanya","Netivot","Nof HaGalil","Ofakim","Or Akiva","Or Yehuda","Petah Tikva","Qalansawe","Ra'anana","Rahat","Ramat Gan","Ramat HaSharon","Ramla","Rehovot","Rishon LeZion","Rosh HaAyin","Safed","Sakhnin","Sderot","Shefa-Amr","Tamra","Tayibe","Tel Aviv","Tiberias","Tira","Tirat Carmel","Umm al-Fahm","Yavne","Yehud-Monosson","Yokneam Illit"].map((c) => (
                 <option key={c} value={c} />
               ))}
             </datalist>

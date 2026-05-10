@@ -217,7 +217,7 @@ function EditModal({ listing, onClose, onSaved }: { listing: Listing; onClose: (
 
 export default function Dashboard() {
   const router = useRouter();
-  const { profile, loading: authLoading, signOut } = useAuth();
+  const { profile, user, loading: authLoading, profileLoading, signOut } = useAuth();
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("listed");
   const [myListings, setMyListings] = useState<Listing[]>([]);
@@ -228,12 +228,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!profile) {
+    if (user && profileLoading) return; // still fetching profile
+    if (!user) {
       router.replace("/login");
       return;
     }
     loadData();
-  }, [profile, authLoading, router]);
+  }, [user, profile, authLoading, profileLoading, router]);
 
   function loadData() {
     Promise.all([
@@ -248,8 +249,8 @@ export default function Dashboard() {
       });
   }
 
-  // Show loading spinner while auth is resolving
-  if (authLoading || (!profile && loading)) {
+  // Show loading spinner while auth is resolving or profile is loading
+  if (authLoading || (user && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream-50">
         <Loader2 className="w-8 h-8 animate-spin text-purple-600" />

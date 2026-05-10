@@ -159,7 +159,7 @@ const ISRAEL_CITIES = [
 
 export default function PostItem() {
   const router = useRouter();
-  const { profile, loading: authLoading } = useAuth();
+  const { profile, user, loading: authLoading, profileLoading } = useAuth();
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -281,8 +281,8 @@ export default function PostItem() {
     }
   };
 
-  // Show loading while auth resolves
-  if (authLoading) {
+  // Show loading while session resolves (near-instant) or profile is fetching (for logged-in users)
+  if (authLoading || (user && profileLoading)) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-600 border-t-transparent" />
@@ -291,7 +291,7 @@ export default function PostItem() {
   }
 
   // Auth gate — must be signed in before filling the form
-  if (!profile) {
+  if (!user) {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center bg-cream-50 p-6 text-center">
         <motion.div

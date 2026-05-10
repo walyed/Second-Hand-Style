@@ -18,6 +18,7 @@ interface AuthContextType {
   user: SupabaseUser | null;
   profile: AppUser | null;
   loading: boolean;
+  profileLoading: boolean;
   signUp: (email: string, phone: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signIn: (identifier: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -31,15 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const profileFetchRef = useRef(false);
 
-  const fetchProfile = useCallback(async (_token?: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+  // fetchProfile uses the authId we already have — no extra getUser() roundtrip
+  const fetchProfile = useCallback(async (authId: string) => {
     const { data, error } = await supabase
       .from("users")
       .select("*")
-      .eq("auth_id", user.id)
+      .eq("auth_id", authId)
       .maybeSingle();
     if (!error && data) {
       const p: AppUser = {
@@ -58,33 +59,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     const { data: { session: s } } = await supabase.auth.getSession();
-    if (s?.access_token) {
-      await fetchProfile(s.access_token);
+    if (s?.user?.id) {
+      await fetchProfile(s.user.id);
     }
   }, [fetchProfile]);
 
   useEffect(() => {
-    // Initial session load
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+    // getSession() reads from cookie/localStorage — near-instant, no network call
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user && s.access_token) {
-        await fetchProfile();
+      setLoading(false); // unblock UI immediately
+
+      // Fetch profile in background so pages render without waiting
+      if (s?.user?.id) {
+        setProfileLoading(true);
+        fetchProfile(s.user.id).finally(() => setProfileLoading(false));
       }
-      setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user && s.access_token) {
+      if (s?.user?.id) {
         if (!profileFetchRef.current) {
           profileFetchRef.current = true;
-          await fetchProfile();
-          profileFetchRef.current = false;
+          setProfileLoading(true);
+          fetchProfile(s.user.id).finally(() => {
+            setProfileLoading(false);
+            profileFetchRef.current = false;
+          });
         }
       } else {
         setProfile(null);
+        setProfileLoading(false);
       }
     });
 
@@ -124,7 +132,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }, { onConflict: "auth_id" });
       // Fetch and set profile BEFORE returning so redirect sees it
       profileFetchRef.current = true;
-      await fetchProfile();
+      setProfileLoading(true);
+      await fetchProfile(data.user.id);
+      setProfileLoading(false);
       profileFetchRef.current = false;
     }
 
@@ -164,9 +174,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) return { error: error.message };
 
     // Fetch profile BEFORE returning so the redirect target sees it immediately
-    if (data.session) {
+    if (data.session?.user?.id) {
       profileFetchRef.current = true;
-      await fetchProfile();
+      setProfileLoading(true);
+      await fetchProfile(data.session.user.id);
+      setProfileLoading(false);
       profileFetchRef.current = false;
     }
 
@@ -180,7 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, user, profile, loading, signUp, signIn, signOut, refreshProfile }}
+      value={{ session, user, profile, loading, profileLoading, signUp, signIn, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>
